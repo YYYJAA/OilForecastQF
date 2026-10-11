@@ -1,0 +1,69 @@
+{
+  "plugin": "arma_garch",
+  "version": "1",
+  "trained_at": "2026-10-11T10:32:18+00:00",
+  "train_end": "2026-10-09",
+  "arma_order": [
+    0,
+    2
+  ],
+  "garch_pq": [
+    1,
+    1
+  ],
+  "garch_dist": "t",
+  "series": {
+    "brent_fut": {
+      "arma_params": "[-1.86196752e-02 -6.35045480e-04  5.92608837e+00]",
+      "garch_params": "[0.04693461 0.08241055 0.91309411 5.61848659]",
+      "garch_param_names": [
+        "omega",
+        "alpha[1]",
+        "beta[1]",
+        "nu"
+      ],
+      "arma_param_names": [
+        "ma.L1",
+        "ma.L2",
+        "sigma2"
+      ],
+      "converged_arma": true,
+      "converged_garch": true,
+      "n_obs": 4778,
+      "first_date": "2007-07-31",
+      "last_date": "2026-10-09",
+      "aic_arma": 22066.684086302303,
+      "aic_garch": 20040.66276224271,
+      "persistence": 0.9955046616002273,
+      "uncond_vol_daily_pct": 3.2312117121142805,
+      "nu": 5.61848659120435
+    },
+    "wti_fut": {
+      "arma_params": "[-0.01643723 -0.02749138  6.90361986]",
+      "garch_params": "[0.08199637 0.07920554 0.908096   7.66475561]",
+      "garch_param_names": [
+        "omega",
+        "alpha[1]",
+        "beta[1]",
+        "nu"
+      ],
+      "arma_param_names": [
+        "ma.L1",
+        "ma.L2",
+        "sigma2"
+      ],
+      "converged_arma": true,
+      "converged_garch": true,
+      "n_obs": 6558,
+      "first_date": "2000-08-24",
+      "last_date": "2026-10-09",
+      "aic_arma": 31287.28918070082,
+      "aic_garch": 28731.09082363142,
+      "persistence": 0.9873015338077903,
+      "uncond_vol_daily_pct": 2.5410995791613833,
+      "nu": 7.664755607296993
+    }
+  },
+  "warnings": [],
+  "hmm_fit_date": null
+}

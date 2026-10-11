@@ -1,4 +1,10 @@
 pandas
 numpy
-yfinance>=0.2.40
+scipy
+scikit-learn
+joblib
 matplotlib
+yfinance>=0.2.40
+xlrd
+statsmodels
+arch

@@ -1,114 +1,152 @@
-"""Email a table and chart of the last 10 trading days of WTI/Brent futures and spot.
+"""Email the daily forecast report.
 
-Reads Data/raw/yahoo_daily.csv and Data/raw/fred_daily.csv (all series are downloaded by
-update_data.py; only these four are shown in the email).
+Contents: forecast table (all models, all horizons), chart (last 60 days + forecasts),
+last-7-days actual vs forecast, realised accuracy scorecard, and the last 7 days of the four
+WTI/Brent futures and spot series. Models are read from the forecast log, so any model added to the
+registry shows up automatically.
 
 Credentials come from environment variables (never put them in the repo):
     GMAIL_USER          sender Gmail address
     GMAIL_APP_PASSWORD  a Gmail app password (needs 2-step verification)
-Optional: EMAIL_TO (default e0725196@u.nus.edu), EMAIL_CC (default yja210199@gmail.com)
+Recipients: see forecast/mailer.py (EMAIL_TO / EMAIL_CC override the defaults)
 
 Usage:  python scripts/send_email.py             send the email
         python scripts/send_email.py --dry-run   write email_preview/ (html, png, eml) and send nothing
 """
 import argparse
-import io
 import json
 import os
-import smtplib
 import sys
-from email.message import EmailMessage
 from pathlib import Path
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
-RAW = ROOT / "Data" / "raw"
-N_DAYS = 10
-TO = os.getenv("EMAIL_TO", "e0725196@u.nus.edu")
-CC = os.getenv("EMAIL_CC", "yja210199@gmail.com")
+sys.path.insert(0, str(ROOT))
 
-# label -> (file, column)
+from forecast import mailer, reporting as rp  # noqa: E402
+from forecast.config import OUTPUT_DIR, RAW_DIR, Config  # noqa: E402
+from forecast.data import load_inputs  # noqa: E402
+
+N_CHART_DAYS = 60
+N_TABLE_DAYS = 7
+
 SERIES = {"WTI futures": ("yahoo_daily.csv", "wti_fut"), "WTI spot": ("fred_daily.csv", "wti_spot"),
           "Brent futures": ("yahoo_daily.csv", "brent_fut"), "Brent spot": ("fred_daily.csv", "brent_spot")}
-COLORS = {"WTI futures": "#e69f00", "WTI spot": "#1f4e79", "Brent futures": "#e69f00", "Brent spot": "#1f4e79"}
 
 
-def load_last_days():
-    files = {f: pd.read_csv(RAW / f, index_col=0, parse_dates=True) for f in {v[0] for v in SERIES.values()}}
-    df = pd.concat([files[f][c].rename(label) for label, (f, c) in SERIES.items()], axis=1)
-    trading_days = files["yahoo_daily.csv"]["wti_fut"].dropna().index        # last 10 futures trading days
-    return df.reindex(trading_days).tail(N_DAYS)
+def market_table(n=N_TABLE_DAYS):
+    files = {f: pd.read_csv(RAW_DIR / f, index_col=0, parse_dates=True) for f in {v[0] for v in SERIES.values()}}
+    df = pd.concat([files[f][c].rename(k) for k, (f, c) in SERIES.items()], axis=1, sort=True)
+    df = df.reindex(files["yahoo_daily.csv"]["wti_fut"].dropna().index).tail(n)
+    rows = [[d.strftime("%Y-%m-%d")] + ["<span style='color:#aaa'>n/a</span>" if pd.isna(v) else f"{v:,.2f}" for v in r]
+            for d, r in df.iloc[::-1].iterrows()]
+    return rp._html_table(["Date"] + list(df.columns), rows)
 
 
-def make_chart(df):
-    fig, ax = plt.subplots(1, 2, figsize=(10, 3.8))
-    for a, name in zip(ax, ["WTI", "Brent"]):
-        for kind in ["futures", "spot"]:
-            s = df[f"{name} {kind}"]
-            a.plot(s.index, s, marker="o", ms=4, lw=1.8, color=COLORS[f"{name} {kind}"], label=kind)
-        a.set_title(f"{name}: last {N_DAYS} trading days (USD/bbl)")
-        a.legend(); a.grid(alpha=0.3); a.tick_params(axis="x", rotation=40)
-        a.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%m-%d"))
-    plt.tight_layout()
-    buf = io.BytesIO(); fig.savefig(buf, format="png", dpi=130); plt.close(fig)
-    return buf.getvalue()
+def _read_json(name):
+    p = ROOT / name
+    return json.loads(p.read_text()) if p.exists() else {}
 
 
-def make_table_html(df):
-    shown = df.copy(); shown.index = shown.index.strftime("%Y-%m-%d")
-    head = "".join(f"<th style='padding:4px 10px;border-bottom:2px solid #444;text-align:right'>{c}</th>" for c in shown.columns)
-    rows = ""
-    for date, r in shown.iterrows():
-        cells = "".join(
-            f"<td style='padding:4px 10px;border-bottom:1px solid #ddd;text-align:right'>"
-            f"{'<span style=color:#999>n/a</span>' if pd.isna(v) else f'{v:,.2f}'}</td>" for v in r)
-        rows += f"<tr><td style='padding:4px 10px;border-bottom:1px solid #ddd'>{date}</td>{cells}</tr>"
-    return (f"<table style='border-collapse:collapse;font-family:Arial,sans-serif;font-size:13px'>"
-            f"<tr><th style='padding:4px 10px;border-bottom:2px solid #444;text-align:left'>Date</th>{head}</tr>{rows}</table>")
+def build(cfg):
+    """Returns subject, plain text, html (images referenced as cid:chart_<target>), {cid: png}."""
+    inputs = load_inputs(cfg)
+    latest = pd.read_csv(OUTPUT_DIR / "latest_forecasts.csv", parse_dates=["asof_date", "target_date_approx"])
+    log = pd.read_csv(OUTPUT_DIR / "forecast_log.csv", parse_dates=["asof_date", "target_date_approx"])
+    for df in (latest, log):
+        if "target" not in df:
+            df["target"] = cfg.target
+        if "sigma_kind" not in df:
+            df["sigma_kind"] = "rv20"
+    upd, run = _read_json("update_status.json"), _read_json("run_status.json")
 
+    targets = [cfg.target] + [t for t in latest["target"].unique() if t != cfg.target]
+    targets = [t for t in targets if t in set(latest["target"])]
+    sections, images, plain_parts, headline = [], {}, [], []
+    for t in targets:
+        price = inputs.prices[t].dropna()
+        price = price.where(price > 0).dropna()
+        cur = rp.baseline_log(latest[latest["target"] == t], price)
+        asof = cur["asof_date"].max()
+        cur = cur[cur["asof_date"] == asof]
+        p0 = float(cur["price_now"].iloc[0])
+        tlog = rp.baseline_log(log[log["target"] == t], price)
+        cid = f"chart_{t}"
+        images[cid] = rp.make_chart(price, cur, N_CHART_DAYS, rp.target_label(t))
+        unc = rp.uncertainty_table(cur)
+        sc_html = rp.scorecard_html(rp.scorecard(tlog, np.log(price)))
+        sections.append(f"""<h2 style="margin-bottom:2px;border-top:2px solid #333;padding-top:10px">{rp.target_label(t)}
+<span style="font-weight:normal;font-size:14px;color:#555">({t}) as of {asof.date()}: <b>{p0:,.2f}</b> USD/bbl</span></h2>
+<h3>Forecasts from today's data</h3>
+<p style="font-size:11.5px;color:#777;margin:0 0 4px">Price (change vs no change). Grey = same as no change.</p>{rp.forecast_table(cur)}
+<h3>Uncertainty: +-1 sd range of the price</h3>{unc}
+<h3>Last {N_CHART_DAYS} trading days and forecasts</h3><img src="cid:{cid}" style="max-width:100%">
+<h3>Last {N_TABLE_DAYS} days: actual vs the 1-day-ahead forecast made the day before</h3>
+{rp.last_days_table(tlog, price, N_TABLE_DAYS, horizon=1)}
+<p style="font-size:11px;color:#777">Cell = forecast made the previous trading day (actual / forecast - 1 in brackets).</p>
+<h3>Track record: RMSE vs no change (below 1.000 = better than no change)</h3>{sc_html}""")
+        c = cur.pivot_table(index="horizon", columns="model", values="forecast_price").round(2)
+        plain_parts.append(f"{t} as of {asof.date()}: {p0:,.2f}\n{c.to_string()}")
+        if t == cfg.target:
+            hmax = int(cur["horizon"].max())
+            combo = cur[(cur["model"] == "Combo_EW") & (cur["horizon"] == hmax)]
+            headline = [f"{t} {p0:,.2f}"] + ([f"Combo +{hmax}d {combo['forecast_price'].iloc[0]:,.1f}"] if len(combo) else [])
+            asof_main = asof
 
-def build_message(df, png, status, sender, inline_src="cid:chart"):
-    last = df.dropna(how="all").iloc[-1]
-    subject = f"Oil data update {df.index[-1].date()}: WTI fut {df['WTI futures'].iloc[-1]:,.2f} | Brent fut {df['Brent futures'].iloc[-1]:,.2f}"
-    notes = ["n/a = not yet published. FRED/EIA spot prices lag the Yahoo futures by several days."]
-    if status.get("failed_series"):
-        notes.append(f"WARNING: these series failed to download today (old values kept): {', '.join(status['failed_series'])}")
-    note_html = "".join(f"<p style='font-size:12px;color:#555;font-family:Arial,sans-serif'>{n}</p>" for n in notes)
-    html = (f"<html><body style='font-family:Arial,sans-serif'><h3>Oil data update, last {N_DAYS} trading days</h3>"
-            f"{make_table_html(df)}<br><img src='{inline_src}' style='max-width:100%'><br>{note_html}"
-            f"<p style='font-size:11px;color:#888'>All series were downloaded and merged into Data/raw/; only these four are shown.</p></body></html>")
-    text = f"Oil data update, last {N_DAYS} trading days\n\n{df.round(2).to_string()}\n\n" + "\n".join(notes)
-    msg = EmailMessage()
-    msg["Subject"], msg["From"], msg["To"], msg["Cc"] = subject, sender, TO, CC
-    msg.set_content(text)
-    msg.add_alternative(html, subtype="html")
-    return msg, html
+    notes = [f"Forecasts are expected log-returns turned into prices. \"No change\" is the random-walk benchmark; "
+             f"futures series are continuous front-month (contract rolls appear as small jumps). "
+             f"The ARMA-GARCH model forecasts almost no change; its value is the volatility band."]
+    if upd.get("failed_series"):
+        notes.append(f"<b style='color:#b00'>Data warning:</b> these series failed to download today (older values kept): "
+                     f"{', '.join(upd['failed_series'])}")
+    for f in run.get("failed_plugins", []):
+        notes.append(f"<b style='color:#b00'>Model failed:</b> {f['plugin']}: {f['error']}")
+    for s_ in run.get("stale_plugins", []):
+        notes.append(f"<b style='color:#b00'>Model not retrained for {s_['age_days']} days:</b> {s_['plugin']}")
+    trained = latest.groupby("plugin")["model_train_end"].first().to_dict()
+    notes.append("Models last trained on data through: " + ", ".join(f"{k} ({v})" for k, v in trained.items()) + ". "
+                 "They are retrained quarterly; each day only the new data is fed through.")
+    if upd.get("last_dates", {}).get("eia_wti_futures.csv", "9999") < "2025-01-01":
+        notes.append("EIA's futures-curve files stopped in April 2024, so the curve-slope feature is unavailable.")
+    note_html = "".join(f"<p style='font-size:12px;color:#555;margin:4px 0'>{n}</p>" for n in notes)
+
+    html = f"""<html><body style="font-family:Arial,sans-serif;max-width:920px">
+<h1 style="margin-bottom:0">Oil forecast report</h1>
+{''.join(sections)}
+<h2 style="border-top:2px solid #333;padding-top:10px">Market data, last {N_TABLE_DAYS} trading days (USD/bbl)</h2>{market_table()}
+<p style="font-size:11px;color:#777">n/a = FRED/EIA spot prices are published with a delay of several days.</p>
+<hr>{note_html}</body></html>"""
+    plain = "\n\n".join(plain_parts)
+    return f"Oil forecast {asof_main.date()}: " + " | ".join(headline), plain, html, images
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--dry-run", action="store_true"); args = ap.parse_args()
-    df = load_last_days(); png = make_chart(df)
-    sp = ROOT / "update_status.json"; status = json.loads(sp.read_text()) if sp.exists() else {}
-    sender = os.getenv("GMAIL_USER", "sender@example.com")
-    msg, html = build_message(df, png, status, sender)
-    msg.get_payload()[1].add_related(png, "image", "png", cid="<chart>")
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--dry-run", action="store_true")
+    args = ap.parse_args()
+    cfg = Config()
+    subject, plain, html, images = build(cfg)
+    msg = mailer.build_message(subject, plain, html, images)
     if args.dry_run:
-        out = ROOT / "email_preview"; out.mkdir(exist_ok=True)
-        (out / "chart.png").write_bytes(png)
-        (out / "preview.html").write_text(build_message(df, png, status, sender, inline_src="chart.png")[1])
+        out = ROOT / "email_preview"
+        out.mkdir(exist_ok=True)
+        preview = html
+        for cid, png in images.items():
+            (out / f"{cid}.png").write_bytes(png)
+            preview = preview.replace(f"cid:{cid}", f"{cid}.png")
+        (out / "preview.html").write_text(preview)
         (out / "message.eml").write_bytes(bytes(msg))
-        print(f"Dry run: wrote {out}/ (preview.html, chart.png, message.eml). Nothing sent.\n\n{df.round(2).to_string()}")
+        print(f"Dry run: wrote {out}/ (preview.html, {len(images)} charts, message.eml). Nothing sent.\n"
+              f"To: {msg['To']}  Cc: {msg.get('Cc')}\nSubject: {msg['Subject']}")
         return 0
-    user, pwd = os.getenv("GMAIL_USER"), os.getenv("GMAIL_APP_PASSWORD")
-    if not user or not pwd:
-        print("ERROR: GMAIL_USER and GMAIL_APP_PASSWORD must be set.", file=sys.stderr); return 1
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=60) as s:
-        s.login(user, pwd); s.send_message(msg, to_addrs=[TO, CC])
-    print(f"Sent to {TO} (cc {CC}): {msg['Subject']}")
+    try:
+        to, cc = mailer.send(msg)
+    except Exception as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    print(f"Sent to {', '.join(to)} (cc {', '.join(cc)}): {subject}")
     return 0
 
 

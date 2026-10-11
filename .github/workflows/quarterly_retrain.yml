@@ -1,0 +1,75 @@
+name: Quarterly model retrain
+
+on:
+  schedule:
+    - cron: "37 21 1 1,4,7,10 *"   # 1st of Jan/Apr/Jul/Oct, 21:37 UTC
+  workflow_dispatch:                # "retrain now" from the Actions tab
+    inputs:
+      plugins:
+        description: "Plugins to retrain, space separated (empty = all)"
+        type: string
+        default: ""
+      send_email:
+        description: "Send the retrain report email"
+        type: boolean
+        default: true
+      email_to:
+        description: "Send only to these addresses, comma-separated (empty = default team list)"
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-update              # same group as the daily job so the two never run at once
+  cancel-in-progress: false
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: 1. Refresh the data
+        run: python scripts/update_data.py
+
+      - name: 2. Retrain (re-selects hyper-parameters on past data only)
+        env:
+          PLUGINS: ${{ inputs.plugins }}
+        run: |
+          if [ -n "$PLUGINS" ]; then
+            python scripts/train_models.py --plugins $PLUGINS
+          else
+            python scripts/train_models.py
+          fi
+
+      - name: 3. Commit the new models and the retrain report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add models/ Data/raw/*.csv
+          if git diff --cached --quiet; then
+            echo "No changes."
+          else
+            git commit -m "Retrain $(date -u +%F)"
+            git pull --rebase origin "${GITHUB_REF_NAME}" || true
+            git push
+          fi
+
+      - name: 4. Email what changed
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.send_email }}
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          EMAIL_SUBJECT_PREFIX: ${{ github.event_name == 'workflow_dispatch' && '(manual run) ' || '' }}
+          EMAIL_TO: ${{ inputs.email_to }}
+        run: python scripts/send_retrain_email.py

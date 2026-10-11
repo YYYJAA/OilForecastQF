@@ -1,13 +1,20 @@
-"""Download the last 90 days of every series and merge them into the CSVs in Data/raw/.
+"""Download the latest data for every series and merge it into the CSVs in Data/raw/.
 
-* Existing history is kept; for dates in the overlap window the newly downloaded values win
-  (so revised data is corrected) unless the new value is missing.
-* A file that does not exist yet (or lacks a series) is downloaded in full from START_DATE.
-* Writes update_status.json (read by send_email.py) listing any series that failed to download.
-* Exit code 1 only if nothing at all could be downloaded.
+Files written (all keep full history; existing values are kept, new values win):
+    yahoo_daily.csv        Yahoo futures / indices (unchanged column set)
+    yahoo_extra_daily.csv  Yahoo extras used by the forecasting models (USDCAD, USDNOK, EEM)
+    fred_daily.csv         FRED daily series (spot prices, rates, OVX, 10Y-3M, EPU)
+    weekly_raw.csv         Weekly series: NY Fed WEI (FRED) and US crude stocks (EIA)
+    eia_wti_futures.csv    EIA WTI futures contracts 1-4 (EIA's files stop in April 2024)
 
-Usage:  python scripts/update_data.py            (incremental, last 90 days)
-        FULL_REFRESH=1 python scripts/update_data.py   (re-download everything)
+Daily files are refreshed incrementally (last OVERLAP_DAYS); a file or column that is missing is
+downloaded in full from START_DATE. The small weekly/EIA files are always re-downloaded in full.
+
+Writes update_status.json (read by the e-mail step) with any series that failed.
+Exit code 1 only if nothing at all could be downloaded.
+
+Usage:  python scripts/update_data.py
+        FULL_REFRESH=1 python scripts/update_data.py     (re-download everything)
 """
 import json
 import os
@@ -27,15 +34,22 @@ FULL_REFRESH = bool(os.getenv("FULL_REFRESH", ""))
 YF_TICKERS = {"wti_fut": "CL=F", "brent_fut": "BZ=F", "gasoline": "RB=F", "heating_oil": "HO=F",
               "natgas": "NG=F", "xle": "XLE", "sp500": "^GSPC", "vix": "^VIX",
               "dxy": "DX-Y.NYB", "gold": "GC=F", "copper": "HG=F"}
+YF_EXTRA = {"usdcad": "CAD=X", "usdnok": "NOK=X", "eem": "EEM"}
 FRED_SERIES = {"wti_spot": "DCOILWTICO", "brent_spot": "DCOILBRENTEU",
                "ust10y": "DGS10", "ust2y": "DGS2", "curve_10y2y": "T10Y2Y",
-               "breakeven10y": "T10YIE", "ovx": "OVXCLS"}
+               "breakeven10y": "T10YIE", "ovx": "OVXCLS",
+               "t10y3m": "T10Y3M", "epu": "USEPUINDXD"}
+FRED_WEEKLY = {"wei": "WEI"}                                   # FRED weekly (period date = week end)
+EIA_WEEKLY = {"crude_stocks": "WCESTUS1w"}                     # EIA weekly US crude stocks excl. SPR
+EIA_FUTURES = {"wti_c1": "RCLC1d", "wti_c2": "RCLC2d", "wti_c3": "RCLC3d", "wti_c4": "RCLC4d"}
+EIA_URL = "https://www.eia.gov/dnav/pet/hist_xls/{sid}.xls"
 
 
-def download_yahoo(start, failed):
+# --------------------------------------------------------------------------- downloaders
+def _yahoo(tickers, start, failed):
     end = (pd.Timestamp.today() + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
     cols = {}
-    for name, ticker in YF_TICKERS.items():
+    for name, ticker in tickers.items():
         try:
             x = yf.download(ticker, start=start, end=end, auto_adjust=False, progress=False, threads=False)
             if isinstance(x.columns, pd.MultiIndex):
@@ -52,9 +66,9 @@ def download_yahoo(start, failed):
     return pd.DataFrame(cols).sort_index()
 
 
-def download_fred(start, failed):
+def _fred(series, start, failed):
     cols = {}
-    for name, series_id in FRED_SERIES.items():
+    for name, series_id in series.items():
         try:
             x = pd.read_csv(f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}&cosd={start}")
             s = pd.to_numeric(x.iloc[:, 1], errors="coerce")
@@ -67,11 +81,27 @@ def download_fred(start, failed):
     return pd.DataFrame(cols).sort_index()
 
 
-def update_csv(downloader, path, expected_cols, failed):
+def _eia(series, failed):
+    cols = {}
+    for name, sid in series.items():
+        try:
+            d = pd.read_excel(EIA_URL.format(sid=sid), sheet_name="Data 1", skiprows=2)   # needs xlrd
+            s = pd.Series(pd.to_numeric(d.iloc[:, 1], errors="coerce").to_numpy(), index=pd.to_datetime(d.iloc[:, 0]))
+            cols[name] = s.dropna().sort_index()
+            print(f"  EIA   {name:<12} {sid:<10} {len(cols[name]):>5} rows, last {cols[name].index.max().date()}")
+        except Exception as exc:
+            failed.append(name)
+            print(f"  WARNING: EIA {name} failed: {exc}")
+    return pd.DataFrame(cols).sort_index()
+
+
+# --------------------------------------------------------------------------- merge
+def update_csv(path, downloader, expected_cols, failed, incremental=True):
+    """downloader(start, failed) -> DataFrame. Merge into path; keep old values where new ones are missing."""
     old, start = None, START_DATE
     if path.exists() and not FULL_REFRESH:
         old = pd.read_csv(path, index_col=0, parse_dates=True)
-        if set(expected_cols) <= set(old.columns):
+        if incremental and set(expected_cols) <= set(old.columns):
             start = (old.index.max() - pd.Timedelta(days=OVERLAP_DAYS)).strftime("%Y-%m-%d")
     print(f"{path.name}: downloading from {start}")
     new = downloader(start, failed)
@@ -86,20 +116,28 @@ def update_csv(downloader, path, expected_cols, failed):
 
 def main():
     RAW.mkdir(parents=True, exist_ok=True)
-    failed = []
-    try:
-        yahoo = update_csv(download_yahoo, RAW / "yahoo_daily.csv", YF_TICKERS, failed)
-        fred = update_csv(download_fred, RAW / "fred_daily.csv", FRED_SERIES, failed)
-    except Exception as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
+    failed, results = [], {}
+    jobs = [
+        ("yahoo_daily.csv", lambda s, f: _yahoo(YF_TICKERS, s, f), YF_TICKERS, True),
+        ("yahoo_extra_daily.csv", lambda s, f: _yahoo(YF_EXTRA, s, f), YF_EXTRA, True),
+        ("fred_daily.csv", lambda s, f: _fred(FRED_SERIES, s, f), FRED_SERIES, True),
+        ("weekly_raw.csv", lambda s, f: pd.concat([_fred(FRED_WEEKLY, START_DATE, f), _eia(EIA_WEEKLY, f)], axis=1).sort_index(),
+         {**FRED_WEEKLY, **EIA_WEEKLY}, False),
+        ("eia_wti_futures.csv", lambda s, f: _eia(EIA_FUTURES, f), EIA_FUTURES, False),
+    ]
+    for fname, downloader, expected, incremental in jobs:
+        try:
+            results[fname] = update_csv(RAW / fname, downloader, expected, failed, incremental)
+        except Exception as exc:
+            print(f"ERROR: {fname}: {exc}", file=sys.stderr)
+            failed.extend(list(expected))
+    if not results:
         return 1
     status = {"updated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-              "failed_series": failed,
-              "yahoo_last_date": str(yahoo.index.max().date()), "fred_last_date": str(fred.index.max().date())}
+              "failed_series": sorted(set(failed)),
+              "last_dates": {f: str(df.index.max().date()) for f, df in results.items()}}
     (ROOT / "update_status.json").write_text(json.dumps(status, indent=2))
-    print("Done:", status)
-    if len(failed) == len(YF_TICKERS) + len(FRED_SERIES):
-        return 1
+    print("Done:", json.dumps(status))
     return 0
 
 
