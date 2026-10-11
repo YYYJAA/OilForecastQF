@@ -5,6 +5,10 @@ on:
     - cron: "37 21 1 1,4,7,10 *"   # 1st of Jan/Apr/Jul/Oct, 21:37 UTC
   workflow_dispatch:                # "retrain now" from the Actions tab
     inputs:
+      download_data:
+        description: "Refresh the data first (untick to retrain on the data already in the repo)"
+        type: boolean
+        default: true
       plugins:
         description: "Plugins to retrain, space separated (empty = all)"
         type: string
@@ -40,6 +44,7 @@ jobs:
       - run: pip install -r requirements.txt
 
       - name: 1. Refresh the data
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.download_data }}
         run: python scripts/update_data.py
 
       - name: 2. Retrain (re-selects hyper-parameters on past data only)

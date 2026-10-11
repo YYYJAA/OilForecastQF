@@ -14,7 +14,7 @@ Every quarter (quarterly_retrain.yml)
 **Both workflows can also be started by hand:** GitHub > Actions > pick the workflow > *Run workflow*.
 The daily one can skip the email or backfill the log; the retrain one can limit the plugins or skip the email.
 
-**Emails** go to e0725196@u.nus.edu and weizhi.da@u.nus.edu (cc yja210199@gmail.com); see `forecast/mailer.py`.
+**Emails** go to the five NUS addresses listed in `forecast/mailer.py` (cc yja210199@gmail.com); edit `DEFAULT_TO` there to change the list.
 The retrain email lists the new training window, which variables/penalties/factor counts changed, how the
 forecasts changed (old vs new model on the same data) and the regime-model parameters.
 

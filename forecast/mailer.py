@@ -1,7 +1,7 @@
 """Shared e-mail settings and sending (Gmail SMTP with an app password).
 
 Recipients (EMAIL_TO overrides everything and drops the default cc; comma-separated):
-    To: e0725196@u.nus.edu, weizhi.da@u.nus.edu      Cc: yja210199@gmail.com
+    To: the five NUS addresses in DEFAULT_TO below      Cc: yja210199@gmail.com
 If EMAIL_SUBJECT_PREFIX is set it is put in front of every subject (the workflows set it for manual runs).
 Credentials come from GMAIL_USER and GMAIL_APP_PASSWORD (GitHub secrets); never put them in the repo.
 """
@@ -9,7 +9,13 @@ import os
 import smtplib
 from email.message import EmailMessage
 
-DEFAULT_TO = "e0725196@u.nus.edu,weizhi.da@u.nus.edu"
+DEFAULT_TO = ",".join([
+    "e0725196@u.nus.edu",
+    "weizhi.da@u.nus.edu",
+    "e0775008@u.nus.edu",
+    "e1597843@u.nus.edu",
+    "kristin.wei@u.nus.edu",
+])
 DEFAULT_CC = "yja210199@gmail.com"
 
 

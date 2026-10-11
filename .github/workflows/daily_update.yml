@@ -5,6 +5,10 @@ on:
     - cron: "17 22 * * 1-5"     # 22:17 UTC Mon-Fri = 06:17 Singapore Tue-Sat, after the US close
   workflow_dispatch:             # manual run from the Actions tab (all steps run by default)
     inputs:
+      download_data:
+        description: "Download the latest data first (untick to use the data already in the repo)"
+        type: boolean
+        default: true
       send_email:
         description: "Send the email report"
         type: boolean
@@ -40,6 +44,7 @@ jobs:
       - run: pip install -r requirements.txt
 
       - name: 1. Download the latest data and merge into the CSVs
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.download_data }}
         run: python scripts/update_data.py
 
       - name: 2. Forecast with the saved models (no retraining)
