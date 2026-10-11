@@ -1,0 +1,61 @@
+# Automated forecasting pipeline
+
+```
+Every weekday (GitHub Actions, daily_update.yml)
+  1. scripts/update_data.py   download last 90 days of every series, merge into Data/raw/*.csv
+  2. scripts/run_daily.py     load saved models, forecast all horizons, append Outputs/forecast_log.csv
+  3. commit                   data CSVs + forecast log
+  4. scripts/send_email.py    forecast table, chart, last-7-days actual vs forecast, track record
+
+Every quarter (quarterly_retrain.yml)
+  scripts/update_data.py -> scripts/train_models.py -> commit models/ -> scripts/send_retrain_email.py
+```
+
+**Both workflows can also be started by hand:** GitHub > Actions > pick the workflow > *Run workflow*.
+The daily one can skip the email or backfill the log; the retrain one can limit the plugins or skip the email.
+
+**Emails** go to e0725196@u.nus.edu and weizhi.da@u.nus.edu (cc yja210199@gmail.com); see `forecast/mailer.py`.
+The retrain email lists the new training window, which variables/penalties/factor counts changed, how the
+forecasts changed (old vs new model on the same data) and the regime-model parameters.
+
+Models are **not** retrained daily: `models/<plugin>.joblib` holds the fitted models; each day only
+the new data is fed through them (features, regime filter, prediction). A quarterly retrain re-selects
+hyper-parameters (LASSO penalty, number of PCA factors, HMM parameters) on past data only.
+Refit frequency was tested on 2016-2026 (refit every 21 / 63 / 252 days): 63 vs 21 days changed RMSE by at most
+1.8% with no systematic pattern, so quarterly is enough.
+
+## Folders
+| Path | Content |
+|---|---|
+| `Data/raw/` | `yahoo_daily`, `yahoo_extra_daily`, `fred_daily`, `weekly_raw`, `eia_wti_futures` CSVs |
+| `forecast/` | package: `data`, `features`, `regime` (HMM), `models`, `registry`, `plugins/`, `reporting` |
+| `models/` | saved models (`*.joblib`), readable summaries (`*_meta.json`), `training_history.csv` |
+| `Outputs/` | `latest_forecasts.csv`, `forecast_log.csv` (every forecast ever made) |
+| `scripts/` | entry points: `update_data`, `run_daily`, `send_email`, `train_models`, `send_retrain_email` |
+
+## Adding a model (ARIMA, GARCH, ML, ...)
+1. Create `forecast/plugins/<name>.py` with a class derived from `ForecastPlugin` (see `forecast/registry.py`):
+   `train(inputs, cfg)`, `predict(artifact, inputs, cfg)`, `backtest(inputs, cfg, n_days, refit_every)`.
+   `predict` returns one row per (model, horizon) with columns
+   `asof_date, model, horizon, forecast_return, sigma`.
+2. Register it: `register(MyPlugin())` at the bottom of the file, and import it in `forecast/plugins/__init__.py`.
+3. Run `python scripts/train_models.py --plugins <name>` once, then `python scripts/run_daily.py --backfill 30`.
+
+The daily run, the forecast log and the e-mail pick it up automatically: the e-mail builds its columns
+from whatever models are in the log. Put display names in `forecast/reporting.py` (`LABELS`).
+
+## Secrets (GitHub: Settings > Secrets and variables > Actions)
+`GMAIL_USER` and `GMAIL_APP_PASSWORD` (a Gmail app password). Recipients are set in `daily_update.yml`.
+
+## Running locally
+```bash
+python scripts/update_data.py
+python scripts/train_models.py            # first time, or to retrain
+python scripts/run_daily.py --backfill 30 # --backfill seeds the log with past forecasts
+python scripts/send_email.py --dry-run    # writes email_preview/, sends nothing
+```
+
+## Known limits
+* Target is `brent_fut`, an unadjusted continuous front-month futures series (contract rolls appear as jumps).
+* EIA's futures-contract files stop in April 2024, so the curve-slope feature is unavailable.
+* Weekly crude stocks come from EIA (the FRED series is no longer served).

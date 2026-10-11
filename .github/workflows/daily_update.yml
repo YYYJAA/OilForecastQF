@@ -1,12 +1,21 @@
-name: Daily oil data update
+name: Daily oil data, forecast and email
 
 on:
   schedule:
-    - cron: "0 23 * * 1-5"      # 23:00 UTC Mon-Fri = 07:00 Singapore Tue-Sat, after the US close
-  workflow_dispatch:             # also lets you run it manually from the Actions tab
+    - cron: "17 22 * * 1-5"     # 22:17 UTC Mon-Fri = 06:17 Singapore Tue-Sat, after the US close
+  workflow_dispatch:             # manual run from the Actions tab (all steps run by default)
+    inputs:
+      send_email:
+        description: "Send the email report"
+        type: boolean
+        default: true
+      backfill_days:
+        description: "Also recompute forecasts for the last N trading days (0 = off)"
+        type: string
+        default: "0"
 
 permissions:
-  contents: write                # needed to commit the updated CSVs
+  contents: write                # needed to commit the updated CSVs and forecast log
 
 concurrency:
   group: daily-update
@@ -15,7 +24,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -26,25 +35,35 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - name: Download last 90 days of every series and merge into the CSVs
+      - name: 1. Download the latest data and merge into the CSVs
         run: python scripts/update_data.py
 
-      - name: Commit updated CSVs
+      - name: 2. Forecast with the saved models (no retraining)
+        env:
+          BACKFILL: ${{ inputs.backfill_days || '0' }}
+        run: |
+          if [ "$BACKFILL" != "0" ]; then
+            python scripts/run_daily.py --backfill "$BACKFILL"
+          else
+            python scripts/run_daily.py
+          fi
+
+      - name: 3. Commit updated data and forecast log
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Data/raw/*.csv
+          git add Data/raw/*.csv Outputs/forecast_log.csv Outputs/latest_forecasts.csv
           if git diff --cached --quiet; then
-            echo "No data changes."
+            echo "No changes."
           else
-            git commit -m "Daily data update $(date -u +%F)"
+            git commit -m "Daily update $(date -u +%F)"
+            git pull --rebase origin "${GITHUB_REF_NAME}" || true
             git push
           fi
 
-      - name: Email the last-10-days summary
+      - name: 4. Email the report
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.send_email }}
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          EMAIL_TO: e0725196@u.nus.edu
-          EMAIL_CC: yja210199@gmail.com
-        run: python scripts/send_email.py
+        run: python scripts/send_email.py        # recipients are set in forecast/mailer.py

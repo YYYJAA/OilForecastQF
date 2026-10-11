@@ -2,3 +2,4 @@ __pycache__/
 .ipynb_checkpoints/
 email_preview/
 update_status.json
+run_status.json
