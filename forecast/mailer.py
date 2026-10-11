@@ -1,7 +1,8 @@
 """Shared e-mail settings and sending (Gmail SMTP with an app password).
 
-Recipients (override with comma-separated EMAIL_TO / EMAIL_CC environment variables):
+Recipients (EMAIL_TO overrides everything and drops the default cc; comma-separated):
     To: e0725196@u.nus.edu, weizhi.da@u.nus.edu      Cc: yja210199@gmail.com
+If EMAIL_SUBJECT_PREFIX is set it is put in front of every subject (the workflows set it for manual runs).
 Credentials come from GMAIL_USER and GMAIL_APP_PASSWORD (GitHub secrets); never put them in the repo.
 """
 import os
@@ -17,24 +18,27 @@ def _split(s):
 
 
 def recipients():
-    to = _split(os.getenv("EMAIL_TO") or DEFAULT_TO)
-    cc = _split(os.getenv("EMAIL_CC") or DEFAULT_CC)
-    return to, cc
+    """Default team list, or an override. If EMAIL_TO is set, only those addresses get the mail and the
+    default cc is dropped (so testing never spams the team); EMAIL_CC can still add a cc explicitly."""
+    override = os.getenv("EMAIL_TO", "").strip()
+    if override:
+        return _split(override), _split(os.getenv("EMAIL_CC", ""))
+    return _split(DEFAULT_TO), _split(os.getenv("EMAIL_CC") or DEFAULT_CC)
 
 
-def build_message(subject, plain, html, inline_png=None):
-    """HTML message with an optional inline image referenced in the html as cid:chart."""
+def build_message(subject, plain, html, inline=None):
+    """HTML message with optional inline PNGs: inline = {cid: png_bytes}, referenced in the html as cid:<cid>."""
     to, cc = recipients()
     msg = EmailMessage()
-    msg["Subject"] = subject
+    msg["Subject"] = os.getenv("EMAIL_SUBJECT_PREFIX", "") + subject     # "(manual run) " when started by hand
     msg["From"] = os.getenv("GMAIL_USER", "sender@example.com")
     msg["To"] = ", ".join(to)
     if cc:
         msg["Cc"] = ", ".join(cc)
     msg.set_content(plain)
     msg.add_alternative(html, subtype="html")
-    if inline_png is not None:
-        msg.get_payload()[1].add_related(inline_png, "image", "png", cid="<chart>")
+    for cid, png in (inline or {}).items():
+        msg.get_payload()[1].add_related(png, "image", "png", cid=f"<{cid}>")
     return msg
 
 

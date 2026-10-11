@@ -1,7 +1,7 @@
 {
   "plugin": "lasso_family",
   "version": "1",
-  "trained_at": "2026-10-11T10:08:14+00:00",
+  "trained_at": "2026-10-11T10:32:17+00:00",
   "train_end": "2026-10-09",
   "n_obs_window": 1260,
   "target": "brent_fut",

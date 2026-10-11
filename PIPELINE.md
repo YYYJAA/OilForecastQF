@@ -33,11 +33,29 @@ Refit frequency was tested on 2016-2026 (refit every 21 / 63 / 252 days): 63 vs 
 | `Outputs/` | `latest_forecasts.csv`, `forecast_log.csv` (every forecast ever made) |
 | `scripts/` | entry points: `update_data`, `run_daily`, `send_email`, `train_models`, `send_retrain_email` |
 
+## Models in the pipeline
+| Plugin | Models | Series | Notes |
+|---|---|---|---|
+| `lasso_family` | No change, LASSO, LASSO 1-SE, PCA, targeted PCA, regime LASSO, equal-weight combo | `cfg.target` (Brent) | from `lasso.ipynb`; HMM regime features |
+| `arma_garch` | ARMA-GARCH (MA(2) mean, GARCH(1,1)-t) | Brent and WTI futures | from `gp_arma_garch.ipynb`; forecasts about no change, its value is the volatility band (all horizons) |
+
+## How models share tables and charts
+* All models report, for one target series, the expected log return over *h* trading days and a 1-sd
+  uncertainty (`sigma`, with `sigma_kind` = `rv20` for recent volatility or `garch`).
+* The e-mail has **one panel per target series** (prices of Brent and WTI cannot share an axis).
+* Tables: price per model and horizon with the change vs "No change" (grey when about zero), the +-1 sd
+  price range per model, last-7-days actual vs forecast, track record (RMSE vs no change; share of
+  outcomes inside the +-1 sd band).
+* Chart: models whose forecast equals no change are merged into one line; model-based bands (GARCH) are
+  shaded and the recent-volatility band is dotted. "No change" is added from the price data when no
+  plugin supplies it.
+
 ## Adding a model (ARIMA, GARCH, ML, ...)
 1. Create `forecast/plugins/<name>.py` with a class derived from `ForecastPlugin` (see `forecast/registry.py`):
    `train(inputs, cfg)`, `predict(artifact, inputs, cfg)`, `backtest(inputs, cfg, n_days, refit_every)`.
    `predict` returns one row per (model, horizon) with columns
-   `asof_date, model, horizon, forecast_return, sigma`.
+   `asof_date, model, horizon, forecast_return, sigma` and optionally `target` (series name, default
+   `cfg.target`) and `sigma_kind`.
 2. Register it: `register(MyPlugin())` at the bottom of the file, and import it in `forecast/plugins/__init__.py`.
 3. Run `python scripts/train_models.py --plugins <name>` once, then `python scripts/run_daily.py --backfill 30`.
 
@@ -56,6 +74,6 @@ python scripts/send_email.py --dry-run    # writes email_preview/, sends nothing
 ```
 
 ## Known limits
-* Target is `brent_fut`, an unadjusted continuous front-month futures series (contract rolls appear as jumps).
+* The `lasso_family` target is `brent_fut`, an unadjusted continuous front-month futures series (contract rolls appear as jumps).
 * EIA's futures-contract files stop in April 2024, so the curve-slope feature is unavailable.
 * Weekly crude stocks come from EIA (the FRED series is no longer served).

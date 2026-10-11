@@ -56,7 +56,7 @@ def main():
         out = ROOT / "email_preview"
         out.mkdir(exist_ok=True)
         (out / "retrain.html").write_text(html)
-        print(f"Dry run: wrote {out / 'retrain.html'}. Nothing sent.\nTo: {msg['To']}  Cc: {msg.get('Cc')}\nSubject: {subject}")
+        print(f"Dry run: wrote {out / 'retrain.html'}. Nothing sent.\nTo: {msg['To']}  Cc: {msg.get('Cc')}\nSubject: {msg['Subject']}")
         return 0
     try:
         to, cc = mailer.send(msg)

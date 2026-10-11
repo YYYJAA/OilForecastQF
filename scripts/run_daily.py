@@ -26,16 +26,19 @@ from forecast.registry import REGISTRY  # noqa: E402
 import forecast.plugins  # noqa: E402,F401
 
 STALE_DAYS = 100          # warn if a model has not been retrained for this long (quarterly = ~91)
-KEY = ["asof_date", "plugin", "model", "horizon"]
+KEY = ["asof_date", "target", "plugin", "model", "horizon"]
 
 
 def decorate(df, plugin, art, inputs, cfg, source):
-    px = inputs.prices[cfg.target]
     out = df.copy()
     out["asof_date"] = pd.to_datetime(out["asof_date"])
+    if "target" not in out:
+        out["target"] = cfg.target
+    if "sigma_kind" not in out:
+        out["sigma_kind"] = "rv20"
     out["plugin"] = plugin
     out["source"] = source
-    out["price_now"] = out["asof_date"].map(px)
+    out["price_now"] = [inputs.prices[t].dropna().get(d, np.nan) for t, d in zip(out["target"], out["asof_date"])]
     out["forecast_price"] = out["price_now"] * np.exp(out["forecast_return"])
     out["target_date_approx"] = [d + pd.offsets.BDay(int(h)) for d, h in zip(out["asof_date"], out["horizon"])]
     out["model_trained_at"] = art["trained_at"]
@@ -79,6 +82,11 @@ def main():
         live.to_csv(OUTPUT_DIR / "latest_forecasts.csv", index=False)
         lp = OUTPUT_DIR / "forecast_log.csv"
         old = pd.read_csv(lp, parse_dates=["asof_date", "target_date_approx"]) if lp.exists() else pd.DataFrame()
+        if len(old):                                   # logs written before multi-target support
+            if "target" not in old:
+                old["target"] = cfg.target
+            if "sigma_kind" not in old:
+                old["sigma_kind"] = "rv20"
         parts = [p for p in [pd.concat(back_parts, ignore_index=True) if back_parts else None, old, live] if p is not None and len(p)]
         log = pd.concat(parts, ignore_index=True)
         log = log.drop_duplicates(KEY, keep="last").sort_values(KEY)      # live rows win over backfill

@@ -9,6 +9,10 @@ on:
         description: "Send the email report"
         type: boolean
         default: true
+      email_to:
+        description: "Send only to these addresses, comma-separated (empty = default team list)"
+        type: string
+        default: ""
       backfill_days:
         description: "Also recompute forecasts for the last N trading days (0 = off)"
         type: string
@@ -66,4 +70,6 @@ jobs:
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          EMAIL_SUBJECT_PREFIX: ${{ github.event_name == 'workflow_dispatch' && '(manual run) ' || '' }}
+          EMAIL_TO: ${{ inputs.email_to }}
         run: python scripts/send_email.py        # recipients are set in forecast/mailer.py

@@ -51,28 +51,60 @@ def _read_json(name):
 
 
 def build(cfg):
+    """Returns subject, plain text, html (images referenced as cid:chart_<target>), {cid: png}."""
     inputs = load_inputs(cfg)
-    price = inputs.prices[cfg.target].dropna()
     latest = pd.read_csv(OUTPUT_DIR / "latest_forecasts.csv", parse_dates=["asof_date", "target_date_approx"])
     log = pd.read_csv(OUTPUT_DIR / "forecast_log.csv", parse_dates=["asof_date", "target_date_approx"])
+    for df in (latest, log):
+        if "target" not in df:
+            df["target"] = cfg.target
+        if "sigma_kind" not in df:
+            df["sigma_kind"] = "rv20"
     upd, run = _read_json("update_status.json"), _read_json("run_status.json")
 
-    ftab, asof, p0 = rp.forecast_table(latest)
-    chart = rp.make_chart(price, latest, N_CHART_DAYS)
-    last7 = rp.last_days_table(log, price, N_TABLE_DAYS, horizon=1)
-    sc = rp.scorecard(log, np.log(price))
-    sc_html = rp.scorecard_html(sc)
-    mkt = market_table()
+    targets = [cfg.target] + [t for t in latest["target"].unique() if t != cfg.target]
+    targets = [t for t in targets if t in set(latest["target"])]
+    sections, images, plain_parts, headline = [], {}, [], []
+    for t in targets:
+        price = inputs.prices[t].dropna()
+        price = price.where(price > 0).dropna()
+        cur = rp.baseline_log(latest[latest["target"] == t], price)
+        asof = cur["asof_date"].max()
+        cur = cur[cur["asof_date"] == asof]
+        p0 = float(cur["price_now"].iloc[0])
+        tlog = rp.baseline_log(log[log["target"] == t], price)
+        cid = f"chart_{t}"
+        images[cid] = rp.make_chart(price, cur, N_CHART_DAYS, rp.target_label(t))
+        unc = rp.uncertainty_table(cur)
+        sc_html = rp.scorecard_html(rp.scorecard(tlog, np.log(price)))
+        sections.append(f"""<h2 style="margin-bottom:2px;border-top:2px solid #333;padding-top:10px">{rp.target_label(t)}
+<span style="font-weight:normal;font-size:14px;color:#555">({t}) as of {asof.date()}: <b>{p0:,.2f}</b> USD/bbl</span></h2>
+<h3>Forecasts from today's data</h3>
+<p style="font-size:11.5px;color:#777;margin:0 0 4px">Price (change vs no change). Grey = same as no change.</p>{rp.forecast_table(cur)}
+<h3>Uncertainty: +-1 sd range of the price</h3>{unc}
+<h3>Last {N_CHART_DAYS} trading days and forecasts</h3><img src="cid:{cid}" style="max-width:100%">
+<h3>Last {N_TABLE_DAYS} days: actual vs the 1-day-ahead forecast made the day before</h3>
+{rp.last_days_table(tlog, price, N_TABLE_DAYS, horizon=1)}
+<p style="font-size:11px;color:#777">Cell = forecast made the previous trading day (actual / forecast - 1 in brackets).</p>
+<h3>Track record: RMSE vs no change (below 1.000 = better than no change)</h3>{sc_html}""")
+        c = cur.pivot_table(index="horizon", columns="model", values="forecast_price").round(2)
+        plain_parts.append(f"{t} as of {asof.date()}: {p0:,.2f}\n{c.to_string()}")
+        if t == cfg.target:
+            hmax = int(cur["horizon"].max())
+            combo = cur[(cur["model"] == "Combo_EW") & (cur["horizon"] == hmax)]
+            headline = [f"{t} {p0:,.2f}"] + ([f"Combo +{hmax}d {combo['forecast_price'].iloc[0]:,.1f}"] if len(combo) else [])
+            asof_main = asof
 
-    notes = [f"Target series: <b>{cfg.target}</b> (continuous front-month futures; contract rolls appear as small jumps). "
-             f"Forecasts are expected log-returns turned into prices; \"No change\" is the random-walk benchmark."]
+    notes = [f"Forecasts are expected log-returns turned into prices. \"No change\" is the random-walk benchmark; "
+             f"futures series are continuous front-month (contract rolls appear as small jumps). "
+             f"The ARMA-GARCH model forecasts almost no change; its value is the volatility band."]
     if upd.get("failed_series"):
         notes.append(f"<b style='color:#b00'>Data warning:</b> these series failed to download today (older values kept): "
                      f"{', '.join(upd['failed_series'])}")
     for f in run.get("failed_plugins", []):
         notes.append(f"<b style='color:#b00'>Model failed:</b> {f['plugin']}: {f['error']}")
-    for s in run.get("stale_plugins", []):
-        notes.append(f"<b style='color:#b00'>Model not retrained for {s['age_days']} days:</b> {s['plugin']}")
+    for s_ in run.get("stale_plugins", []):
+        notes.append(f"<b style='color:#b00'>Model not retrained for {s_['age_days']} days:</b> {s_['plugin']}")
     trained = latest.groupby("plugin")["model_train_end"].first().to_dict()
     notes.append("Models last trained on data through: " + ", ".join(f"{k} ({v})" for k, v in trained.items()) + ". "
                  "They are retrained quarterly; each day only the new data is fed through.")
@@ -80,25 +112,14 @@ def build(cfg):
         notes.append("EIA's futures-curve files stopped in April 2024, so the curve-slope feature is unavailable.")
     note_html = "".join(f"<p style='font-size:12px;color:#555;margin:4px 0'>{n}</p>" for n in notes)
 
-    html = f"""<html><body style="font-family:Arial,sans-serif;max-width:900px">
-<h2 style="margin-bottom:2px">Oil forecast: {asof.date()}</h2>
-<p style="margin-top:0;color:#555">{cfg.target} = <b>{p0:,.2f}</b> USD/bbl. Cells show forecast price (change vs no-change).</p>
-<h3>1. Forecasts from today's data</h3>{ftab}
-<h3>2. Last {N_CHART_DAYS} trading days and forecasts</h3><img src="CHART_SRC" style="max-width:100%">
-<h3>3. Last {N_TABLE_DAYS} days: actual vs the 1-day-ahead forecast made the day before</h3>{last7}
-<p style="font-size:11px;color:#777">Cell = forecast made the previous trading day (actual / forecast - 1 in brackets).</p>
-<h3>4. Track record: RMSE vs no-change, by horizon (below 1.000 = better than no-change)</h3>{sc_html}
-<h3>5. Market data, last {N_TABLE_DAYS} trading days (USD/bbl)</h3>{mkt}
+    html = f"""<html><body style="font-family:Arial,sans-serif;max-width:920px">
+<h1 style="margin-bottom:0">Oil forecast report</h1>
+{''.join(sections)}
+<h2 style="border-top:2px solid #333;padding-top:10px">Market data, last {N_TABLE_DAYS} trading days (USD/bbl)</h2>{market_table()}
 <p style="font-size:11px;color:#777">n/a = FRED/EIA spot prices are published with a delay of several days.</p>
 <hr>{note_html}</body></html>"""
-    plain = (f"Oil forecast {asof.date()}: {cfg.target} = {p0:,.2f}\n\n"
-             + latest[latest["asof_date"] == asof].pivot_table(index="horizon", columns="model",
-                                                                values="forecast_price").round(2).to_string())
-    c = latest[latest["asof_date"] == asof]
-    combo = c[(c["model"] == "Combo_EW") & (c["horizon"] == c["horizon"].max())]
-    tail = f" | Combo +{int(combo['horizon'].iloc[0])}d {combo['forecast_price'].iloc[0]:,.1f}" if len(combo) else ""
-    subject = f"Oil forecast {asof.date()}: {cfg.target} {p0:,.2f}{tail}"
-    return subject, plain, html, chart
+    plain = "\n\n".join(plain_parts)
+    return f"Oil forecast {asof_main.date()}: " + " | ".join(headline), plain, html, images
 
 
 def main():
@@ -106,16 +127,19 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
     cfg = Config()
-    subject, plain, html, chart = build(cfg)
-    msg = mailer.build_message(subject, plain, html.replace("CHART_SRC", "cid:chart"), chart)
+    subject, plain, html, images = build(cfg)
+    msg = mailer.build_message(subject, plain, html, images)
     if args.dry_run:
         out = ROOT / "email_preview"
         out.mkdir(exist_ok=True)
-        (out / "chart.png").write_bytes(chart)
-        (out / "preview.html").write_text(html.replace("CHART_SRC", "chart.png"))
+        preview = html
+        for cid, png in images.items():
+            (out / f"{cid}.png").write_bytes(png)
+            preview = preview.replace(f"cid:{cid}", f"{cid}.png")
+        (out / "preview.html").write_text(preview)
         (out / "message.eml").write_bytes(bytes(msg))
-        print(f"Dry run: wrote {out}/ (preview.html, chart.png, message.eml). Nothing sent.\n"
-              f"To: {msg['To']}  Cc: {msg.get('Cc')}\nSubject: {subject}")
+        print(f"Dry run: wrote {out}/ (preview.html, {len(images)} charts, message.eml). Nothing sent.\n"
+              f"To: {msg['To']}  Cc: {msg.get('Cc')}\nSubject: {msg['Subject']}")
         return 0
     try:
         to, cc = mailer.send(msg)

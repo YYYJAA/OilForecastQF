@@ -45,6 +45,12 @@ class Config:
     hmm_refit: int = 63
     hmm_window: Optional[int] = None
 
+    # ---- ARMA-GARCH plugin (teammate's gp_arma_garch.ipynb: MA(2) mean, GARCH(1,1)-t on its residuals) ----
+    arma_order: tuple = (0, 2)                        # (p, q); zero-mean ARMA fitted on daily log returns
+    garch_pq: tuple = (1, 1)
+    garch_dist: str = "t"
+    arma_garch_targets: List[str] = field(default_factory=lambda: ["brent_fut", "wti_fut"])
+
     # ---- combination ----
     combo_pool: List[str] = field(default_factory=lambda: ["RW", "LASSO", "LASSO_1se", "PCA_reg", "TPCA", "LASSO_RS"])
 
