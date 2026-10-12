@@ -99,6 +99,31 @@ class LassoFamily(ForecastPlugin):
         df["regime_p"] = float(X["regime_p"].iloc[-1])
         return df
 
+    def rolling_predict(self, art, inputs, cfg, origins):
+        """Fixed parameters at every origin. Features are causal (checked by the look-ahead test), so they are built
+        once; the regime filter is continued once through all days after the training end."""
+        X, Y, logp = build_features(inputs.prices, inputs.eia, inputs.weekly, cfg.target, cfg)
+        hm = art["hmm"]
+        H = hmm_inputs(logp, cfg.hmm_inputs)
+        P = pd.DataFrame(np.nan, index=X.index, columns=[f"state{k}" for k in range(len(hm["alpha"]))])
+        alpha = np.asarray(hm["alpha"], float)
+        if hm["date"] in P.index:
+            P.loc[hm["date"]] = alpha
+        for d in X.index[X.index > hm["date"]]:
+            row = H.loc[d].to_numpy(dtype=float)
+            if np.isfinite(row).all():
+                alpha = continue_filter(alpha, row, hm["A"], hm["mu"], hm["var"])
+            P.loc[d] = alpha
+        X = add_regime_features(X, P, cfg)
+        rows = []
+        for d in origins:
+            if d in X.index:
+                r = _predict_row(art["fits"], X.loc[d], cfg, d)
+                for x in r:
+                    x["regime_p"] = float(X.loc[d, "regime_p"])
+                rows += r
+        return pd.DataFrame(rows)
+
     def backtest(self, inputs, cfg, n_days, refit_every=5):
         X, Y, logp, P, hmm_log = _panel(inputs, cfg)
         last = len(X) - 1

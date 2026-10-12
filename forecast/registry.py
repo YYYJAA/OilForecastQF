@@ -28,6 +28,14 @@ class ForecastPlugin:
     def backtest(self, inputs, cfg, n_days: int, refit_every: int = 5):
         raise NotImplementedError
 
+    def rolling_predict(self, artifact: dict, inputs, cfg, origins):
+        """Forecasts at many past origins using FIXED parameters (the frozen-model evaluation). Default: call
+        predict() on the inputs known at each origin (always correct, can be slow); plugins may override."""
+        from .data import truncate_inputs
+        import pandas as pd
+        parts = [self.predict(artifact, truncate_inputs(inputs, d), cfg) for d in origins]
+        return pd.concat(parts, ignore_index=True)
+
     def describe_change(self, old, new, inputs, cfg) -> dict:
         """What changed between two artifacts (old may be None on the first training), for the retrain
         e-mail. Return {"headline": [str, ...], "tables": [{"title": str, "header": [...], "rows": [[...]]}]}."""

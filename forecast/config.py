@@ -64,6 +64,13 @@ class Config:
     msar_n_sim: int = 4000                # simulated paths for the +-1 sd band
     msar_fill_limit: int = 3              # causal forward-fill limit for WTI / DXY quotes
 
+    # ---- frozen-model evaluation (scripts/frozen_eval.py) ----
+    frozen_cutoff: str = "2024-12-31"        # models are estimated / selected on data up to and including this date
+    frozen_fan_origin: str = "2026-07-01"    # origin of the one-off "forecast fan vs actual" picture
+    frozen_trade_horizon: int = 20           # horizon used for the equity-curve chart in the e-mail
+    cost_bps: float = 5.0                    # transaction cost per unit of turnover (basis points)
+    trade_band: float = 0.1                  # trade only if |forecast| > band * (1-sd of the h-day return)
+
     # ---- combination ----
     combo_pool: List[str] = field(default_factory=lambda: ["RW", "LASSO", "LASSO_1se", "PCA_reg", "TPCA", "LASSO_RS"])
 

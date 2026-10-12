@@ -63,6 +63,24 @@ Re-selecting the specification still means re-running the notebook with `RERUN_M
 2024+ test comparison (reused, exploratory) found both models no better than no change. Earlier implementation files are
 archived outside the repository at `../tmp/msar_before_notebook_only/`.
 
+## Frozen-model evaluation and economic value (`scripts/frozen_eval.py`)
+Answers: "how would these models have done if they stopped learning on a fixed date?" (config: `frozen_cutoff`,
+default 2024-12-31).
+* Every plugin is trained **only on data up to the cutoff**; from the next day on, the frozen parameters are applied
+  daily to the data known on each date (features and regime filter continue, nothing is refitted).
+* Forecasts since the cutoff are scored against outcomes: RMSE vs no change, direction, +-1 sd band coverage,
+  Diebold-Mariano p-value (HAC, h-1 lags).
+* **Economic value:** a simple rule turns each forecast into a position: long if the forecast return is above
+  `trade_band` x the 1-sd of the h-day return, short if below minus that, otherwise flat. Overlapping tranches (each day
+  opens 1/h of capital and holds it h days), `cost_bps` per unit of turnover. Reported: annualised return, volatility,
+  Sharpe, max drawdown, turnover, costs paid, days in market, against buy and hold.
+* Outputs in `Outputs/frozen_eval/`; the e-mail gets a "Frozen-model check" section.
+* Runs on the 1st of each month, when missing, or on demand ("run_frozen_eval" in the manual-run dialog) - about
+  1-2 minutes.
+* This is a deliberately stale model (skill plus ageing). It is not the production model.
+* Caveat for the report: window / weight choices come from the notebooks' own validation (all before 2025), but some
+  design decisions were made after seeing later data, so the test is clean for estimation but not pristine.
+
 ## How models share tables and charts
 * All models report, for one target series, the expected log return over *h* trading days and a 1-sd
   uncertainty (`sigma`, with `sigma_kind` = `rv20` for recent volatility or `garch`).

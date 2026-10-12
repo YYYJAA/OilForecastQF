@@ -43,3 +43,12 @@ def load_inputs(cfg: Config, raw_dir: Path = RAW_DIR) -> Inputs:
     wk = _read(raw_dir / "weekly_raw.csv")
     weekly = {n: (wk[n].dropna(), cfg.weekly_release_lag) for n in WEEKLY if n in wk.columns}
     return Inputs(prices=prices, eia=_read(raw_dir / "eia_wti_futures.csv"), weekly=weekly)
+
+
+def truncate_inputs(inputs: Inputs, date) -> Inputs:
+    """Inputs as they were known on `date` (everything after it removed). Weekly series keep their release-lag
+    logic, so a value dated before `date` but released after it is still not used by the features."""
+    d = pd.Timestamp(date)
+    return Inputs(prices=inputs.prices.loc[:d],
+                  eia=inputs.eia.loc[:d] if len(inputs.eia) else inputs.eia,
+                  weekly={k: (s.loc[:d], lag) for k, (s, lag) in inputs.weekly.items()})

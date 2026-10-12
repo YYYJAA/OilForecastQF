@@ -19,6 +19,10 @@ on:
         description: "Send only to these addresses, comma-separated (empty = default team list)"
         type: string
         default: ""
+      run_frozen_eval:
+        description: "Re-run the frozen-model evaluation now (otherwise: 1st of the month or when missing)"
+        type: boolean
+        default: false
       backfill_days:
         description: "Also recompute forecasts for the last N trading days (0 = off)"
         type: string
@@ -72,11 +76,21 @@ jobs:
             python scripts/run_daily.py
           fi
 
+      - name: 2b. Frozen-model evaluation (1st of the month, when missing, or when ticked)
+        env:
+          FORCE: ${{ inputs.run_frozen_eval || 'false' }}
+        run: |
+          if [ "$FORCE" = "true" ] || [ "$(date -u +%d)" = "01" ] || [ ! -f Outputs/frozen_eval/summary.json ]; then
+            python scripts/frozen_eval.py
+          else
+            echo "Frozen-model evaluation is up to date; skipping."
+          fi
+
       - name: 3. Commit updated data and forecast log
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Data/raw/*.csv Outputs/forecast_log.csv Outputs/latest_forecasts.csv
+          git add Data/raw/*.csv Outputs/forecast_log.csv Outputs/latest_forecasts.csv Outputs/frozen_eval
           if git diff --cached --quiet; then
             echo "No changes."
           else

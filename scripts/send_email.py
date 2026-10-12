@@ -25,7 +25,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from forecast import mailer, reporting as rp  # noqa: E402
+from forecast import frozen_report, mailer, reporting as rp  # noqa: E402
 from forecast.config import OUTPUT_DIR, RAW_DIR, Config  # noqa: E402
 from forecast.data import load_inputs  # noqa: E402
 
@@ -61,6 +61,14 @@ def build(cfg):
         if "sigma_kind" not in df:
             df["sigma_kind"] = "rv20"
     upd, run = _read_json("update_status.json"), _read_json("run_status.json")
+
+    try:
+        frozen_html, frozen_images = frozen_report.section(cfg)
+    except Exception as exc:                                     # the optional section must never break the daily e-mail
+        frozen_html, frozen_images = "", {}
+        notes_extra = f"Frozen-model section skipped: {exc}"
+    else:
+        notes_extra = None
 
     targets = [cfg.target] + [t for t in latest["target"].unique() if t != cfg.target]
     targets = [t for t in targets if t in set(latest["target"])]
@@ -110,11 +118,15 @@ def build(cfg):
                  "They are retrained quarterly; each day only the new data is fed through.")
     if upd.get("last_dates", {}).get("eia_wti_futures.csv", "9999") < "2025-01-01":
         notes.append("EIA's futures-curve files stopped in April 2024, so the curve-slope feature is unavailable.")
+    if notes_extra:
+        notes.append(notes_extra)
     note_html = "".join(f"<p style='font-size:12px;color:#555;margin:4px 0'>{n}</p>" for n in notes)
 
+    images.update(frozen_images)
     html = f"""<html><body style="font-family:Arial,sans-serif;max-width:920px">
 <h1 style="margin-bottom:0">Oil forecast report</h1>
 {''.join(sections)}
+{frozen_html}
 <h2 style="border-top:2px solid #333;padding-top:10px">Market data, last {N_TABLE_DAYS} trading days (USD/bbl)</h2>{market_table()}
 <p style="font-size:11px;color:#777">n/a = FRED/EIA spot prices are published with a delay of several days.</p>
 <hr>{note_html}</body></html>"""
