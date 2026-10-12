@@ -63,6 +63,32 @@ def _trade_table(tr, H, models):
                            "Days in market", "Costs paid"], rows)
 
 
+def _coverage_table(m, models):
+    rows = []
+    for h in sorted(m["horizon"].unique()):
+        cells = [f"+{h}d"]
+        for mod in models:
+            r = m[(m["horizon"] == h) & (m["model"] == mod)]
+            v = r["coverage_1sd"].iloc[0] if len(r) else float("nan")
+            cells.append(_grey("n/a") if pd.isna(v) else f"{100 * v:.0f}%")
+        rows.append(cells)
+    return rp._html_table(["Horizon"] + [("Recent volatility" if x == "RW" else rp.label(x)) for x in models], rows)
+
+
+def _sharpe_matrix(tr, models, horizons):
+    rows = []
+    bh = tr[(tr["model"] == "Buy & hold")]
+    for mod in models:
+        cells = [rp.label(mod)]
+        for h in horizons:
+            r = tr[(tr["model"] == mod) & (tr["horizon"] == h)]
+            cells.append(_grey("flat") if r.empty or r["days_in_market"].iloc[0] == 0 else f"{r['sharpe'].iloc[0]:.2f}")
+        rows.append(cells)
+    if len(bh):
+        rows.append(["Buy & hold"] + [f"{bh['sharpe'].iloc[0]:.2f}"] * len(horizons))
+    return rp._html_table(["Sharpe ratio"] + [f"+{h}d" for h in horizons], rows)
+
+
 def section(cfg):
     """Returns (html, {cid: png_bytes}); empty when the evaluation has not been run."""
     sp = FOLDER / "summary.json"
@@ -72,30 +98,38 @@ def section(cfg):
     m = pd.read_csv(FOLDER / "metrics.csv")
     tr = pd.read_csv(FOLDER / "trading.csv")
     H = int(s.get("trade_horizon_chart", cfg.frozen_trade_horizon))
+    CH = int(s.get("chart_horizon", cfg.frozen_chart_horizon))
     images, parts = {}, []
     targets = [cfg.target] + [t for t in m["target"].unique() if t != cfg.target]
     for t in [x for x in targets if x in set(m["target"])]:
         mt, tt = m[m["target"] == t], tr[tr["target"] == t]
         models = [x for x in rp.order_models(mt["model"].unique()) if x != "RW"]
         trade_models = [x for x in models if x in set(tt["model"])]
+        cov_models = [x for x in ["RW", "ARMA-GARCH", "MS-AR", "MS-ARX"] if x in set(mt["model"])]
         block = f"<h3>{rp.target_label(t)}</h3>"
-        block += ("<p style='font-size:12px;color:#555;margin:2px 0'>RMSE of the cumulative return divided by the RMSE of "
-                  "\"no change\" (below 1 = better; * = Diebold-Mariano p &lt; 0.10; grey = same as no change):</p>"
+        f = FOLDER / f"rolling_{t}.png"
+        if f.exists():
+            images[f"frozen_rolling_{t}"] = f.read_bytes()
+            block += (f"<p style='font-size:12px;color:#555;margin:2px 0'>Rolling {CH}-day-ahead forecast made every day by the "
+                      f"frozen models, against what happened:</p><img src='cid:frozen_rolling_{t}' style='max-width:100%'><br>")
+        block += ("<p style='font-size:12px;color:#555;margin:10px 0 2px'>Accuracy: RMSE of the cumulative return divided by "
+                  "the RMSE of \"no change\" (below 1 = better; * = Diebold-Mariano p &lt; 0.10; grey = same as no change):</p>"
                   + _ratio_table(mt, models))
         block += ("<p style='font-size:12px;color:#555;margin:10px 0 2px'>Direction correct (\"no call\" = the model "
                   "forecast exactly no change):</p>" + _dir_table(mt, models))
-        block += (f"<p style='font-size:12px;color:#555;margin:10px 0 2px'>Economic value: go long or short on the "
-                  f"+{H}-day forecast (flat if it is within {cfg.trade_band:g} sd of zero), {cfg.cost_bps:g} bp per unit "
-                  f"traded, evaluated on the same dates:</p>" + _trade_table(tt, H, trade_models))
-        for kind, cap in (("fan", f"What the frozen models predicted on {s['fan_origin']} vs what happened"),
-                          ("aligned", None), ("equity", None)):
-            f = FOLDER / f"{kind}_{t}.png"
-            if kind != "fan" and t != cfg.target:
-                continue
-            if f.exists():
-                cid = f"frozen_{kind}_{t}"
-                images[cid] = f.read_bytes()
-                block += f"<img src='cid:{cid}' style='max-width:100%;margin-top:8px'><br>"
+        if len(cov_models) > 1 or "ARMA-GARCH" in cov_models:
+            block += ("<p style='font-size:12px;color:#555;margin:10px 0 2px'>Share of outcomes inside the +-1 sd band "
+                      "(68% if well calibrated):</p>" + _coverage_table(mt, cov_models))
+        block += (f"<p style='font-size:12px;color:#555;margin:10px 0 2px'>Economic value: long or short on the +{H}-day "
+                  f"forecast (flat if it is within {cfg.trade_band:g} sd of zero), {cfg.cost_bps:g} bp per unit traded, "
+                  f"same dates:</p>" + _trade_table(tt, H, trade_models))
+        hz = [h for h in (1, 3, 5, 20, 60) if h in set(tt["horizon"])]
+        block += ("<p style='font-size:12px;color:#555;margin:10px 0 2px'>Sharpe ratio of the same rule at other "
+                  "horizons:</p>" + _sharpe_matrix(tt, trade_models, hz))
+        f = FOLDER / f"equity_{t}.png"
+        if f.exists() and t == cfg.target:
+            images[f"frozen_equity_{t}"] = f.read_bytes()
+            block += f"<img src='cid:frozen_equity_{t}' style='max-width:100%;margin-top:8px'><br>"
         parts.append(block)
     intro = (f"<h2 style='border-top:2px solid #333;padding-top:10px;margin-bottom:2px'>Frozen-model check</h2>"
              f"<p style='font-size:12.5px;color:#444;margin-top:0'>Models <b>estimated only on data up to {s['cutoff']}</b> "

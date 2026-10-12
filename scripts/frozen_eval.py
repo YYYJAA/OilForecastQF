@@ -14,6 +14,7 @@ Usage:  python scripts/frozen_eval.py [--cutoff 2024-12-31] [--fan-origin 2026-0
 This is NOT the production model: it is a stale model by design (it measures skill plus ageing).
 """
 import argparse
+import dataclasses
 import json
 import sys
 import time
@@ -48,6 +49,7 @@ def main():
     cutoff = pd.Timestamp(args.cutoff or cfg.frozen_cutoff)
     fan_origin = pd.Timestamp(args.fan_origin or cfg.frozen_fan_origin)
     OUT.mkdir(parents=True, exist_ok=True)
+    cfg = dataclasses.replace(cfg, horizons=list(cfg.frozen_horizons))    # evaluate short AND long horizons
 
     inputs = load_inputs(cfg)
     train_inputs = truncate_inputs(inputs, cutoff)
@@ -110,60 +112,84 @@ def main():
     cmap = plt.get_cmap("tab10")
     models_all = rp.order_models(fc["model"].unique())
     colour = {m: cmap(k % 10) for k, m in enumerate(models_all)}
+    H, ZOOM = cfg.frozen_chart_horizon, cfg.frozen_zoom_days
     for t, p in prices.items():
-        sub = fan[fan["target"] == t]
-        if len(sub):
-            o = sub["origin"].iloc[0]
-            pos = p.index.get_loc(o)
-            end = min(pos + 60, len(p) - 1)
-            fig, ax = plt.subplots(figsize=(10, 4.6))
-            hist = p.iloc[max(0, pos - 40): end + 1]
-            ax.plot(hist.index, hist.values, color="black", lw=2, label="Actual")
-            ax.axvline(o, color="k", ls=":", lw=0.8)
-            for m in models_all:
-                g = sub[sub["model"] == m].sort_values("horizon")
-                if g.empty:
-                    continue
-                xs = [o] + [d for d in g["target_date"]]
-                ys = [g["price_origin"].iloc[0]] + list(g["forecast_price"])
-                ok = [pd.notna(x) for x in xs]
-                ax.plot([x for x, k in zip(xs, ok) if k], [y for y, k in zip(ys, ok) if k], marker="o", ms=4,
-                        lw=1.6 if m != "RW" else 1.2, ls="--" if m == "RW" else "-", color=colour[m],
-                        label=rp.label(m))
-            ax.set_title(f"{rp.target_label(t)}: forecasts made on {o.date()} by models frozen at {cutoff.date()}, "
-                         f"vs what happened", fontsize=10.5)
-            ax.set_ylabel("USD/bbl"); ax.grid(alpha=0.3); ax.legend(fontsize=7.5, ncol=3, loc="upper left")
-            fig.tight_layout(); fig.savefig(OUT / f"fan_{t}.png", dpi=130); plt.close(fig)
-
-        # forecast made `H` trading days earlier, drawn at the date it predicted
-        H = cfg.frozen_trade_horizon
-        fig, ax = plt.subplots(figsize=(10, 4.4))
-        test = p.loc[p.index > cutoff]
-        ax.plot(test.index, test.values, color="black", lw=2, label="Actual")
         pos_all = {d: i for i, d in enumerate(p.index)}
+
+        def target_date(d, h=H):
+            i = pos_all.get(d)
+            return p.index[i + h] if i is not None and i + h < len(p) else pd.NaT
+
+        # ---------- rolling H-day-ahead chart (two panels)
+        fig, ax = plt.subplots(2, 1, figsize=(11, 7.2), gridspec_kw={"height_ratios": [1, 1]})
+        series = {}
         for m in models_all:
             g = fc[(fc["target"] == t) & (fc["model"] == m) & (fc["horizon"] == H)].sort_values("asof_date")
             if g.empty:
                 continue
-            tgt = [p.index[pos_all[d] + H] if d in pos_all and pos_all[d] + H < len(p) else pd.NaT for d in g["asof_date"]]
-            price_f = [p.loc[d] * np.exp(f) if d in pos_all else np.nan for d, f in zip(g["asof_date"], g["forecast_return"])]
-            s = pd.Series(price_f, index=tgt).dropna()
-            s = s[s.index.notna()]
-            ax.plot(s.index, s.values, lw=1.0 if m != "RW" else 1.2, ls="--" if m == "RW" else "-", color=colour[m],
-                    label=rp.label(m), alpha=0.9)
-        ax.set_title(f"{rp.target_label(t)}: +{H}-day forecast made {H} trading days earlier, drawn at the date it "
-                     f"predicts (models frozen at {cutoff.date()})", fontsize=10)
-        ax.set_ylabel("USD/bbl"); ax.grid(alpha=0.3); ax.legend(fontsize=7.5, ncol=4, loc="upper left")
-        fig.tight_layout(); fig.savefig(OUT / f"aligned_{t}.png", dpi=130); plt.close(fig)
+            tgt = [target_date(d) for d in g["asof_date"]]
+            series[m] = pd.DataFrame({"ret": g["forecast_return"].to_numpy(), "sigma": g["sigma"].to_numpy(),
+                                      "p0": [p.loc[d] if d in pos_all else np.nan for d in g["asof_date"]]},
+                                     index=pd.DatetimeIndex(tgt)).dropna(subset=["ret"])
+            series[m] = series[m][series[m].index.notna()]
+        actual_h = np.log(p.shift(-H) / p)                              # indexed by origin
+        act = pd.Series({target_date(d): v for d, v in actual_h.dropna().items() if d > cutoff}).sort_index()
+        act = act[act.index.notna()]
+        garch = series.get("ARMA-GARCH")
+        flat = {m: s_ for m, s_ in series.items()
+                if (s_["ret"].abs().max() < 0.0005)}                    # forecasts equal to "no change"
+        # panel 1: price, last ZOOM target dates
+        zoom_idx = act.index[-ZOOM:]
+        lo = zoom_idx[0]
+        px = p.loc[lo:]
+        ax[0].plot(px.index, px.values, color="black", lw=2, label="Actual price")
+        if garch is not None:
+            gz = garch.loc[garch.index >= lo]
+            ax[0].fill_between(gz.index, gz["p0"] * np.exp(-gz["sigma"]), gz["p0"] * np.exp(gz["sigma"]),
+                               color="tab:blue", alpha=0.13, label=f"ARMA-GARCH +-1 sd of the {H}-day move")
+        for m, s_ in series.items():
+            sz = s_.loc[s_.index >= lo]
+            if m in flat and m != "RW":
+                continue
+            ax[0].plot(sz.index, sz["p0"] * np.exp(sz["ret"]), lw=1.1 if m != "RW" else 1.2,
+                       ls="--" if m == "RW" else "-", color=colour[m], label=rp.label(m))
+        if flat:
+            ax[0].plot([], [], color="grey", lw=0, label="Forecast = no change: " +
+                       ", ".join(rp.label(m) for m in flat if m != "RW"))
+        ax[0].set_title(f"{rp.target_label(t)}: {H}-day-ahead forecasts made {H} trading days earlier, drawn at the date "
+                        f"they predict (last {ZOOM} days; models frozen at {cutoff.date()})", fontsize=10)
+        ax[0].set_ylabel("USD/bbl"); ax[0].grid(alpha=0.3); ax[0].legend(fontsize=7.5, ncol=3, loc="upper left")
+        # panel 2: the H-day return itself, full test period
+        ax[1].plot(act.index, act.values * 100, color="black", lw=0.8, alpha=0.75, label=f"Actual {H}-day return")
+        if garch is not None:
+            ax[1].fill_between(garch.index, -garch["sigma"] * 100, garch["sigma"] * 100, color="tab:blue", alpha=0.15,
+                               label="ARMA-GARCH +-1 sd band")
+        for m, s_ in series.items():
+            if m in flat or m == "ARMA-GARCH":                       # ARMA-GARCH is its band, not a mean forecast
+                continue
+            ax[1].plot(s_.index, s_["ret"] * 100, lw=1.0, color=colour[m], label=rp.label(m))
+        ax[1].axhline(0, color="k", lw=0.7, label="No change (0%)")
+        cov = float((act.reindex(garch.index).abs() <= garch["sigma"]).mean()) if garch is not None else np.nan
+        ax[1].set_title(f"The {H}-day return and the forecast bands over the whole test period"
+                        + (f"; actual inside the GARCH band {100 * cov:.0f}% of days (68% if calibrated)" if cov == cov else ""),
+                        fontsize=10)
+        ax[1].set_ylabel("%"); ax[1].grid(alpha=0.3); ax[1].legend(fontsize=7.5, ncol=4, loc="upper left")
+        fig.tight_layout(); fig.savefig(OUT / f"rolling_{t}.png", dpi=130); plt.close(fig)
 
+        # ---------- equity curves of the trading rule
+        TH = cfg.frozen_trade_horizon
         fig, ax = plt.subplots(figsize=(10, 4.2))
         for (tt, m, h), c in curves.items():
-            if tt == t and h in (0, H) and m != "RW":
-                ax.plot(c.index, c.values, lw=2.2 if m == "Buy & hold" else 1.2, color="black" if m == "Buy & hold" else colour.get(m, "grey"),
+            if tt == t and h in (0, TH) and m != "RW":
+                if m != "Buy & hold" and trading[(trading["target"] == t) & (trading["model"] == m)
+                                                 & (trading["horizon"] == TH)]["days_in_market"].max() == 0:
+                    continue                                          # never trades: a flat line adds nothing
+                ax.plot(c.index, c.values, lw=2.2 if m == "Buy & hold" else 1.2,
+                        color="black" if m == "Buy & hold" else colour.get(m, "grey"),
                         ls="--" if m == "Buy & hold" else "-", label=rp.label(m) if m != "Buy & hold" else m)
         ax.axhline(1, color="grey", lw=0.8)
-        ax.set_title(f"{rp.target_label(t)}: growth of 1 USD, long/short rule on the +{H}-day forecast, "
-                     f"{cfg.cost_bps:.0f} bp costs", fontsize=10)
+        ax.set_title(f"{rp.target_label(t)}: growth of 1 USD, long/short rule on the {TH}-day forecast, "
+                     f"{cfg.cost_bps:.0f} bp costs (models that never trade are omitted)", fontsize=10)
         ax.grid(alpha=0.3); ax.legend(fontsize=7.5, ncol=4, loc="upper left")
         fig.tight_layout(); fig.savefig(OUT / f"equity_{t}.png", dpi=130); plt.close(fig)
 
@@ -171,7 +197,8 @@ def main():
                "cutoff": str(cutoff.date()), "first_origin": str(min(origins).date()), "last_origin": str(max(origins).date()),
                "n_origins": len(origins), "fan_origin": str(fan_origin.date()), "cost_bps": cfg.cost_bps,
                "trade_band": cfg.trade_band, "trade_horizon_chart": cfg.frozen_trade_horizon,
-               "models": models_all, "horizons": list(cfg.horizons), "trained_through": trained, "failed": failed,
+               "chart_horizon": cfg.frozen_chart_horizon,
+               "models": models_all, "horizons": list(cfg.frozen_horizons), "trained_through": trained, "failed": failed,
                "seconds": round(time.time() - t0, 1)}
     (OUT / "summary.json").write_text(json.dumps(summary, indent=2))
     print(f"[frozen] done in {time.time() - t0:.0f}s -> {OUT}")

@@ -67,7 +67,11 @@ class Config:
     # ---- frozen-model evaluation (scripts/frozen_eval.py) ----
     frozen_cutoff: str = "2024-12-31"        # models are estimated / selected on data up to and including this date
     frozen_fan_origin: str = "2026-07-01"    # origin of the one-off "forecast fan vs actual" picture
-    frozen_trade_horizon: int = 20           # horizon used for the equity-curve chart in the e-mail
+    frozen_horizons: tuple = (1, 2, 3, 5, 10, 20, 40, 60)   # evaluated horizons (tables); charts use the short ones
+    frozen_chart_horizon: int = 3            # rolling h-day-ahead chart
+    frozen_trade_horizon: int = 3            # horizon of the trading rule shown in the e-mail table and equity chart
+    frozen_zoom_days: int = 90               # price panel of the rolling chart shows the last N origins
+    signal_horizon: int = 1                  # horizon of the BUY / SELL / HOLD summary at the top of the e-mail
     cost_bps: float = 5.0                    # transaction cost per unit of turnover (basis points)
     trade_band: float = 0.1                  # trade only if |forecast| > band * (1-sd of the h-day return)
 

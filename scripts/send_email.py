@@ -25,7 +25,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from forecast import frozen_report, mailer, reporting as rp  # noqa: E402
+from forecast import frozen_report, mailer, reporting as rp, signals  # noqa: E402
 from forecast.config import OUTPUT_DIR, RAW_DIR, Config  # noqa: E402
 from forecast.data import load_inputs  # noqa: E402
 
@@ -72,6 +72,11 @@ def build(cfg):
 
     targets = [cfg.target] + [t for t in latest["target"].unique() if t != cfg.target]
     targets = [t for t in targets if t in set(latest["target"])]
+    try:
+        signal_html = signals.block(cfg, latest, targets)
+    except Exception as exc:                                     # optional block: never break the e-mail
+        signal_html = ""
+        notes_extra = ((notes_extra + "; ") if notes_extra else "") + f"Signal summary skipped: {exc}"
     sections, images, plain_parts, headline = [], {}, [], []
     for t in targets:
         price = inputs.prices[t].dropna()
@@ -125,6 +130,7 @@ def build(cfg):
     images.update(frozen_images)
     html = f"""<html><body style="font-family:Arial,sans-serif;max-width:920px">
 <h1 style="margin-bottom:0">Oil forecast report</h1>
+{signal_html}
 {''.join(sections)}
 {frozen_html}
 <h2 style="border-top:2px solid #333;padding-top:10px">Market data, last {N_TABLE_DAYS} trading days (USD/bbl)</h2>{market_table()}

@@ -74,7 +74,18 @@ default 2024-12-31).
   `trade_band` x the 1-sd of the h-day return, short if below minus that, otherwise flat. Overlapping tranches (each day
   opens 1/h of capital and holds it h days), `cost_bps` per unit of turnover. Reported: annualised return, volatility,
   Sharpe, max drawdown, turnover, costs paid, days in market, against buy and hold.
+* Evaluated horizons: 1, 2, 3, 5, 10, 20, 40, 60 days (tables). The charts are short-horizon and rolling: a
+  `frozen_chart_horizon`-day (3) forecast is made every day and drawn against what happened, with the ARMA-GARCH band
+  and how often the realised move fell inside it.
 * Outputs in `Outputs/frozen_eval/`; the e-mail gets a "Frozen-model check" section.
+
+## Signal summary (top of the e-mail, `forecast/signals.py`)
+For `signal_horizon` (1) trading day (the horizon where the frozen test shows the best records; skill fades quickly beyond it): BUY / SELL if a model's expected move exceeds `trade_band` x its 1-sd noise
+(the same rule as the trading test), else HOLD. **The track record comes from the frozen test, not from the model:**
+Significant = direction right significantly more than 50% (one-sided p < 0.05, using n / h effective observations because
+h-day returns overlap) AND RMSE below no change; Suggestive = p < 0.10, or hit-rate > 55% with RMSE below no change;
+None yet otherwise. The consensus is LEAN BUY / LEAN SELL when at least two models agree and outnumber the other side,
+otherwise NEUTRAL.
 * Runs on the 1st of each month, when missing, or on demand ("run_frozen_eval" in the manual-run dialog) - about
   1-2 minutes.
 * This is a deliberately stale model (skill plus ageing). It is not the production model.
