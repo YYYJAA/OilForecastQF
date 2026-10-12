@@ -17,10 +17,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-MODEL_ORDER = ["RW", "LASSO", "LASSO_1se", "PCA_reg", "TPCA", "LASSO_RS", "Combo_EW", "ARMA-GARCH"]
+MODEL_ORDER = ["RW", "LASSO", "LASSO_1se", "PCA_reg", "TPCA", "LASSO_RS", "Combo_EW", "ARMA-GARCH", "MS-AR", "MS-ARX"]
 LABELS = {"RW": "No change", "LASSO": "LASSO", "LASSO_1se": "LASSO 1-SE", "PCA_reg": "PCA reg.",
           "TPCA": "Targeted PCA", "LASSO_RS": "LASSO regime", "Combo_EW": "Combo (equal wt)",
-          "ARMA-GARCH": "ARMA-GARCH"}
+          "ARMA-GARCH": "ARMA-GARCH", "MS-AR": "MS-AR", "MS-ARX": "MS-ARX"}
 TARGET_LABELS = {"brent_fut": "Brent futures", "wti_fut": "WTI futures"}
 CSS_TH = "padding:4px 8px;border-bottom:2px solid #444;text-align:right;font-weight:600"
 CSS_TD = "padding:4px 8px;border-bottom:1px solid #ddd;text-align:right"
@@ -229,32 +229,56 @@ def make_chart(price, cur, n_days=60, title_name=""):
     s0 = rw["sigma"].to_numpy()
     ax.plot(xs, [p0] + list(p0 * np.exp(s0)), color="grey", lw=0.9, ls=":", label="Recent-volatility +-1 sd")
     ax.plot(xs, [p0] + list(p0 * np.exp(-s0)), color="grey", lw=0.9, ls=":")
-    cmap, ci = plt.get_cmap("tab10"), 0
-    for m in models:                                             # model-based uncertainty bands (e.g. GARCH)
+    cmap = plt.get_cmap("tab10")
+    colours = {m: cmap(k % 10) for k, m in enumerate([m for m in models if m not in same])}
+    banded = [m for m in models if (cur[cur["model"] == m]["sigma_kind"] != "rv20").any()
+              and cur[cur["model"] == m]["sigma"].notna().any()]
+    shaded = "ARMA-GARCH" if "ARMA-GARCH" in banded else (banded[0] if banded else None)
+    for m in banded:                                             # model-based +-1 sd bands (GARCH, MS-AR, ...)
         g = cur[cur["model"] == m].sort_values("horizon")
-        if (g["sigma_kind"] != "rv20").any() and g["sigma"].notna().any():
-            f, sg = g["forecast_price"].to_numpy(), g["sigma"].to_numpy()
-            ax.fill_between([asof] + list(g["target_date_approx"]), [p0] + list(f * np.exp(-sg)), [p0] + list(f * np.exp(sg)),
-                            color="tab:blue", alpha=0.13, label=f"{label(m)} +-1 sd")
+        f, sg = g["forecast_price"].to_numpy(), g["sigma"].to_numpy()
+        gx = [asof] + list(g["target_date_approx"])
+        lo, hi = [p0] + list(f * np.exp(-sg)), [p0] + list(f * np.exp(sg))
+        if m == shaded:
+            ax.fill_between(gx, lo, hi, color="tab:blue", alpha=0.13, label=f"{label(m)} +-1 sd")
+        else:
+            c = colours.get(m, "#555555")
+            ax.plot(gx, hi, color=c, lw=0.9, ls=(0, (1, 1.5)), alpha=0.9)
+            ax.plot(gx, lo, color=c, lw=0.9, ls=(0, (1, 1.5)), alpha=0.9)
     ax.plot(xs, [p0] * len(xs), color="dimgrey", ls="--", lw=1.2, label="No change (current price)")
+
+    end_labels = []                                               # (value, colour): placed after plotting, spread apart
 
     def draw(prices, name, color, lw=1.7):
         ax.plot(xs, [p0] + list(prices), marker="o", ms=4.5, lw=lw, color=color, label=name, zorder=3)
-        ax.annotate(f"{prices[-1]:.1f}", (xs[-1], prices[-1]), xytext=(5, 0), textcoords="offset points",
-                    fontsize=8, color=color, va="center")
+        end_labels.append((float(prices[-1]), color))
 
     if same:                                                      # models that say "no change": still drawn, as ONE line
         px = np.mean([cur[cur["model"] == m].sort_values("horizon")["forecast_price"].to_numpy() for m in same], axis=0)
         draw(px, f"{', '.join(label(m) for m in same)} (about no change)", "#008080", lw=2.4)
     for m in distinct:
         g = cur[cur["model"] == m].sort_values("horizon")
-        draw(g["forecast_price"].to_numpy(), label(m), cmap(ci % 10)); ci += 1
+        extra = " (dotted = +-1 sd)" if (m in banded and m != shaded) else ""
+        draw(g["forecast_price"].to_numpy(), label(m) + extra, colours[m])
+    if end_labels:                                                # keep the +60d price labels from overlapping
+        lo_y, hi_y = ax.get_ylim()
+        gap = 0.035 * (hi_y - lo_y)
+        order = sorted(end_labels, key=lambda t: t[0])
+        placed = []
+        for value, color in order:
+            y = value if not placed else max(value, placed[-1] + gap)
+            placed.append(y)
+        shift = (np.mean([v for v, _ in order]) - np.mean(placed))  # centre the stack on the true values
+        for (value, color), y in zip(order, placed):
+            ax.annotate(f"{value:.1f}", (xs[-1], value), xytext=(xs[-1] + pd.Timedelta(days=3), y + shift),
+                        textcoords="data", fontsize=8, color=color, va="center",
+                        arrowprops=dict(arrowstyle="-", color=color, lw=0.6, shrinkA=0, shrinkB=0))
     ax.axvline(asof, color="k", lw=0.8, ls=":")
     ax.set_ylabel("Price (USD/bbl)")
     ax.set_title(f"{title_name}: last {n_days} trading days and forecasts to +{int(cur['horizon'].max())} days "
                  f"(as of {asof.date()})", fontsize=11)
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
-    ax.set_xlim(hist.index[0], xs[-1] + pd.Timedelta(days=10))
+    ax.set_xlim(hist.index[0], xs[-1] + pd.Timedelta(days=14))
     ax.legend(fontsize=7.5, ncol=2, loc="upper left"); ax.grid(alpha=0.3)
     fig.tight_layout()
     buf = io.BytesIO(); fig.savefig(buf, format="png", dpi=130); plt.close(fig)

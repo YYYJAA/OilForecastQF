@@ -1,0 +1,62 @@
+{
+  "plugin": "msar",
+  "version": "1",
+  "statsmodels": "0.15.0",
+  "trained_at": "2026-10-12T13:57:45+00:00",
+  "train_end": "2026-10-09",
+  "target": "brent_fut",
+  "models": {
+    "MS-AR": {
+      "family": "baseline",
+      "window": 1260,
+      "weight": 1.0,
+      "params": "[ 9.80186831e-01  7.20761863e-02  7.69641499e-02 -1.87385931e-01\n  3.04091087e+00  1.78153743e+01  1.63013527e-02]",
+      "scaler": null,
+      "fit_date": "2026-10-09",
+      "window_start": "2021-10-07",
+      "n_obs": 1260,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "llf": -2795.537302520921,
+          "radius": 0.0002657341000191197
+        },
+        {
+          "start": "cold",
+          "accepted": true,
+          "llf": -2795.537302676769,
+          "radius": 0.0002658882482528678
+        }
+      ]
+    },
+    "MS-ARX": {
+      "family": "msarx",
+      "window": 756,
+      "weight": 0.25,
+      "params": "[ 9.85297095e-01  5.44210839e-02  2.04254452e-02  1.94079921e-01\n  2.12755289e-02  1.48879225e-02  2.73169762e+00  1.88308130e+01\n -8.59565915e-02]",
+      "scaler": {
+        "means": "[ 0.01150793 -0.00495661  4.25355816]",
+        "scales": "[2.15528305 0.40207844 1.943487  ]"
+      },
+      "fit_date": "2026-10-09",
+      "window_start": "2023-10-10",
+      "n_obs": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "llf": -1643.5006439953943
+        },
+        {
+          "start": "cold",
+          "accepted": true,
+          "llf": -1643.5006438997516
+        }
+      ]
+    }
+  },
+  "refit_every": 63,
+  "note": "specification (window, mean weight) selected by the notebook on 2022-2023 validation; parameters are re-estimated at each retrain",
+  "hmm_fit_date": null
+}

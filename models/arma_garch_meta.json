@@ -1,7 +1,7 @@
 {
   "plugin": "arma_garch",
   "version": "1",
-  "trained_at": "2026-10-11T10:32:18+00:00",
+  "trained_at": "2026-10-12T13:57:43+00:00",
   "train_end": "2026-10-09",
   "arma_order": [
     0,

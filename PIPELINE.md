@@ -43,6 +43,7 @@ equal-weight combination.
 |---|---|---|---|
 | `lasso_family` | No change, LASSO, LASSO 1-SE, PCA, targeted PCA, regime LASSO, equal-weight combo | `cfg.target` (Brent) | from `lasso.ipynb`; HMM regime features |
 | `arma_garch` | ARMA-GARCH (MA(2) mean, GARCH(1,1)-t) | Brent and WTI futures | from `gp_arma_garch.ipynb`; forecasts about no change, its value is the volatility band (all horizons) |
+| `msar` | MS-AR, MS-ARX (2-regime Markov-switching AR; MS-ARX adds lagged WTI change, DXY return, Brent-WTI spread; forecast scaled by 0.25) | Brent futures | from `msar.ipynb`; needs statsmodels >= 0.15; band = simulated sd |
 
 ## MS-AR research notebook
 
@@ -54,8 +55,12 @@ plots. Open it from `OilForecastQF` and run all cells. It uses
 
 The default run loads existing results and verifies them. Set `RERUN_MODEL = True`
 in the setup cell to refit the baseline and follow-up in order after updating the
-source CSV. MS-AR is not yet a registered daily forecasting plugin. Its reused
-2024+ test comparison remains exploratory. Earlier implementation files are
+source CSV. MS-AR and MS-ARX **are** registered as the `msar` plugin (`forecast/plugins/msar.py`, a port of the
+notebook's estimation, exact-mean recursion and simulation; its 2026-10-09 forecasts match the notebook's saved
+results to three decimals). The notebook's window and mean-weight choices were selected on 2022-2023 validation and are
+fixed in `forecast/config.py` (`msar_models`); the quarterly retrain only re-estimates the regime and AR parameters.
+Re-selecting the specification still means re-running the notebook with `RERUN_MODEL = True`. The notebook's own
+2024+ test comparison (reused, exploratory) found both models no better than no change. Earlier implementation files are
 archived outside the repository at `../tmp/msar_before_notebook_only/`.
 
 ## How models share tables and charts

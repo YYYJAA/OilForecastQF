@@ -51,6 +51,19 @@ class Config:
     garch_dist: str = "t"
     arma_garch_targets: List[str] = field(default_factory=lambda: ["brent_fut", "wti_fut"])
 
+    # ---- MS-AR plugin (teammate's msar.ipynb: 2-regime Markov-switching AR on Brent returns) ----
+    # model name -> family ("baseline" = V1 MS-AR; "msarx" = V2 MS-ARX with lagged WTI/DXY/spread inputs),
+    # estimation window (returns), and the mean weight that scales the expected return (0 = no change, 1 = full).
+    # Values are the ones the notebook selected on its 2022-2023 validation sample.
+    msar_models: dict = field(default_factory=lambda: {
+        "MS-AR": {"family": "baseline", "window": 1260, "weight": 1.0},
+        "MS-ARX": {"family": "msarx", "window": 756, "weight": 0.25},
+    })
+    msar_refit_every: int = 63            # trading days between re-estimations (about a quarter)
+    msar_seed: int = 5210
+    msar_n_sim: int = 4000                # simulated paths for the +-1 sd band
+    msar_fill_limit: int = 3              # causal forward-fill limit for WTI / DXY quotes
+
     # ---- combination ----
     combo_pool: List[str] = field(default_factory=lambda: ["RW", "LASSO", "LASSO_1se", "PCA_reg", "TPCA", "LASSO_RS"])
 
