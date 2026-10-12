@@ -1,0 +1,133 @@
+{
+  "selected_specification": "MS-AR(1)-shared-AR",
+  "selected_order": 1,
+  "switching_ar": false,
+  "config": {
+    "input_path": "C:\\Users\\uniqu\\OneDrive\\QF5210 Project\\OilForecastQF\\Data\\raw\\yahoo_daily.csv",
+    "output_dir": "C:\\Users\\uniqu\\OneDrive\\QF5210 Project\\OilForecastQF\\standalone_msar\\outputs",
+    "target": "brent_fut",
+    "window": 1260,
+    "refit_every": 63,
+    "horizons": [
+      1,
+      5,
+      10,
+      20,
+      40,
+      60
+    ],
+    "validation_start": "2022-01-01",
+    "test_start": "2024-01-01",
+    "n_sim": 4000,
+    "latest_n_sim": 50000,
+    "seed": 5210
+  },
+  "data": {
+    "source_path": "C:\\Users\\uniqu\\OneDrive\\QF5210 Project\\OilForecastQF\\Data\\raw\\yahoo_daily.csv",
+    "source_sha256": "b01eba9484f6e06d76053b6928764fada6b1c4e6665631aaf0f0ce639ba1cdc7",
+    "target": "brent_fut",
+    "ticker": "BZ=F",
+    "source_provider": "Yahoo Finance, according to local download script",
+    "series_definition": "Unadjusted front-month Brent futures Close, USD/barrel; contract-roll jumps retained",
+    "observed_prices": 4779,
+    "observed_daily_returns": 4778,
+    "first_date": "2007-07-30",
+    "last_date": "2026-10-09",
+    "duplicate_dates": 0,
+    "nonpositive_prices": 0,
+    "missing_rows_in_union_calendar": 7171,
+    "internal_missing_rows_in_union_calendar": 59,
+    "maximum_observed_calendar_gap_days": 17,
+    "missing_treatment": "Drop absent Brent observations, no filling; holidays and genuine missing quotes not independently distinguished",
+    "no_fresh_download": true
+  },
+  "validation_first_origin": "2022-01-03",
+  "validation_last_origin": "2023-10-05",
+  "validation_last_target": "2023-12-29",
+  "test_first_origin": "2024-01-02",
+  "test_last_origin": "2026-07-16",
+  "test_last_target": "2026-10-09",
+  "n_validation_origins": 442,
+  "n_test_origins": 638,
+  "validation_score": 1.024556528606576,
+  "selection_rule": "Lowest equal-weight mean of horizon-specific cumulative-return RMSE ratios to RW on purged validation origins",
+  "refit_rule": "Fixed 1260-return rolling estimation window, parameters refitted every 63 observed Brent trading days; state filtered daily",
+  "latest_asof": "2026-10-09",
+  "latest_price": 104.72000122070312,
+  "volatility_split_threshold_pct": 1.7430355697083086,
+  "interval_definition": "Conditional 80/95% predictive intervals from Gaussian MS-AR paths; exclude parameter/model uncertainty",
+  "price_point_definition": "P_t * exp(E[sum future log returns]); distinct from expected arithmetic price and simulated median",
+  "return_units": "CSV forecast_return/actual_return decimal cumulative log return; metrics percentage points; internal daily returns percent",
+  "benchmark_definitions": "RW: zero cumulative return/no price change. AR: same lag order, estimation window/refit origins as selected MS-AR",
+  "live_update_rule": "Update the local source CSV, set RERUN_MODEL = True and rerun msar.ipynb; this notebook does not download data or schedule jobs",
+  "overlap_caution": "Daily horizon errors overlap; descriptive differences, no significance claim",
+  "source_caution": "Unadjusted front-month contract rolls retained; results concern this local extract, not an independently verified spot series",
+  "n_fit_events": 43,
+  "verification": {
+    "one_step_enumeration_passed": true,
+    "simulation_mean_checks": [
+      {
+        "horizon": 1,
+        "exact_mean_log_return": 0.000648332488801836,
+        "simulation_mean": 0.0007422090002541548,
+        "simulation_mc_se": 6.343386323889844e-05,
+        "absolute_z": 1.479911622263495
+      },
+      {
+        "horizon": 5,
+        "exact_mean_log_return": 0.0026819429501065773,
+        "simulation_mean": 0.002764872059550558,
+        "simulation_mc_se": 0.00015182840816803167,
+        "absolute_z": 0.546202851262204
+      },
+      {
+        "horizon": 60,
+        "exact_mean_log_return": 0.016272841371750075,
+        "simulation_mean": 0.014738506515064177,
+        "simulation_mc_se": 0.0006105612634912637,
+        "absolute_z": 2.512990830620967
+      }
+    ]
+  },
+  "latest_fit_attempts": [
+    {
+      "attempt": "cold_search",
+      "accepted": true,
+      "llf": -2795.537302520921,
+      "converged": true,
+      "occupancy_min": 0.21903632304810267,
+      "second_moment_radius": 0.0002657341000189797,
+      "warnings": []
+    },
+    {
+      "attempt": "second_search",
+      "accepted": true,
+      "llf": -2795.5373026767684,
+      "converged": true,
+      "occupancy_min": 0.21903565077217704,
+      "second_moment_radius": 0.00026588824825286644,
+      "warnings": []
+    }
+  ],
+  "latest_llf": -2795.537302520921,
+  "second_moment_radius": 0.0002657341000189797,
+  "latest_high_vol_probability": 0.053032668614775014,
+  "latest_parameters": [
+    0.9801868308002014,
+    0.07207618625566332,
+    0.07696414994149223,
+    -0.1873859307716485,
+    3.040910873789123,
+    17.815374289241902,
+    0.016301352705189214
+  ],
+  "versions": {
+    "python": "3.11.1",
+    "numpy": "1.24.3",
+    "pandas": "2.2.3",
+    "scipy": "1.10.1",
+    "statsmodels": "0.15.0",
+    "matplotlib": "3.7.1"
+  },
+  "elapsed_seconds": 276.7
+}

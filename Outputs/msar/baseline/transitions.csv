@@ -1,0 +1,5 @@
+from_regime,to_regime,probability
+low_vol,low_vol,0.9801868308002014
+low_vol,high_vol,0.019813169199798586
+high_vol,low_vol,0.07207618625566332
+high_vol,high_vol,0.9279238137443366

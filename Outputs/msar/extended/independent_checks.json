@@ -1,0 +1,166 @@
+{
+  "status": "passed",
+  "synthetic_forecasts": [
+    {
+      "family": "conservative",
+      "mean_mode": "switching",
+      "maximum_enumeration_discrepancy": 3.469446951953614e-18,
+      "filter_shape_check": "passed",
+      "shrinkage_preserves_noise": true,
+      "simulation_mean_checks": [
+        {
+          "horizon": 1,
+          "absolute_z": 2.190242663290136
+        },
+        {
+          "horizon": 5,
+          "absolute_z": 0.600568075545708
+        },
+        {
+          "horizon": 60,
+          "absolute_z": 0.34447243296867414
+        }
+      ]
+    },
+    {
+      "family": "conservative",
+      "mean_mode": "shared",
+      "maximum_enumeration_discrepancy": 8.673617379884035e-18,
+      "filter_shape_check": "passed",
+      "shrinkage_preserves_noise": true,
+      "simulation_mean_checks": [
+        {
+          "horizon": 1,
+          "absolute_z": 1.8797193129889427
+        },
+        {
+          "horizon": 5,
+          "absolute_z": 0.3500940897934221
+        },
+        {
+          "horizon": 60,
+          "absolute_z": 0.6161947625300623
+        }
+      ]
+    },
+    {
+      "family": "conservative",
+      "mean_mode": "zero",
+      "maximum_enumeration_discrepancy": 1.734723475976807e-18,
+      "filter_shape_check": "passed",
+      "shrinkage_preserves_noise": true,
+      "simulation_mean_checks": [
+        {
+          "horizon": 1,
+          "absolute_z": 1.9282093972003418
+        },
+        {
+          "horizon": 5,
+          "absolute_z": 0.3462596438565207
+        },
+        {
+          "horizon": 60,
+          "absolute_z": 0.6211423460231188
+        }
+      ]
+    },
+    {
+      "family": "msarx",
+      "mean_mode": "switching",
+      "maximum_enumeration_discrepancy": 3.469446951953614e-18,
+      "filter_shape_check": "passed",
+      "shrinkage_preserves_noise": true,
+      "simulation_mean_checks": [
+        {
+          "horizon": 1,
+          "absolute_z": 2.307636393804039
+        },
+        {
+          "horizon": 5,
+          "absolute_z": 0.6781857949245506
+        },
+        {
+          "horizon": 60,
+          "absolute_z": 0.33353294009103107
+        }
+      ]
+    },
+    {
+      "family": "msarx",
+      "mean_mode": "shared",
+      "maximum_enumeration_discrepancy": 3.469446951953614e-18,
+      "filter_shape_check": "passed",
+      "shrinkage_preserves_noise": true,
+      "simulation_mean_checks": [
+        {
+          "horizon": 1,
+          "absolute_z": 1.9149117715775086
+        },
+        {
+          "horizon": 5,
+          "absolute_z": 0.35282540683576097
+        },
+        {
+          "horizon": 60,
+          "absolute_z": 0.62358107888859
+        }
+      ]
+    },
+    {
+      "family": "msarx",
+      "mean_mode": "zero",
+      "maximum_enumeration_discrepancy": 4.336808689942018e-18,
+      "filter_shape_check": "passed",
+      "shrinkage_preserves_noise": true,
+      "simulation_mean_checks": [
+        {
+          "horizon": 1,
+          "absolute_z": 1.9582398124704823
+        },
+        {
+          "horizon": 5,
+          "absolute_z": 0.3684868679825637
+        },
+        {
+          "horizon": 60,
+          "absolute_z": 0.6207857670863671
+        }
+      ]
+    }
+  ],
+  "alignment_and_leakage": {
+    "future_prefix_invariance": true,
+    "lag_alignment": true,
+    "negative_wti_supported": true,
+    "three_observation_causal_fill": true,
+    "long_missing_gap_rejected": true,
+    "brent_calendar_preserved": true,
+    "fit_only_scaler": true,
+    "frozen_future_scenario": true
+  },
+  "statsmodels_version": "0.15.0",
+  "saved_outputs": {
+    "source_hash_agrees_with_v1": true,
+    "backtest_rows_checked": 19140,
+    "test_origins_checked": 638,
+    "validation_only_selection": true,
+    "validation_scores_recalculated": 96,
+    "fit_window_scalers_verified": true,
+    "metric_recalculation": true,
+    "first_origin_ordinary_arx_reproduced": true,
+    "original_v1_benchmarks_unchanged": true,
+    "latest_reproductions": [
+      {
+        "model": "V2 conservative",
+        "reproduced_horizons": 60,
+        "reproduced_simulation_paths": 50000
+      },
+      {
+        "model": "V2 MS-ARX",
+        "reproduced_horizons": 60,
+        "reproduced_simulation_paths": 50000
+      }
+    ],
+    "test_status": "EXPLORATORY: 2024+ test was inspected before designing V2; it is not a fresh untouched confirmation sample"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "one_step_enumeration_passed": true,
+  "simulation_mean_checks": [
+    {
+      "horizon": 1,
+      "exact_mean_log_return": 0.000648332488801836,
+      "simulation_mean": 0.0007422090002541548,
+      "simulation_mc_se": 6.343386323889844e-05,
+      "absolute_z": 1.479911622263495
+    },
+    {
+      "horizon": 5,
+      "exact_mean_log_return": 0.0026819429501065773,
+      "simulation_mean": 0.002764872059550558,
+      "simulation_mc_se": 0.00015182840816803167,
+      "absolute_z": 0.546202851262204
+    },
+    {
+      "horizon": 60,
+      "exact_mean_log_return": 0.016272841371750075,
+      "simulation_mean": 0.014738506515064177,
+      "simulation_mc_se": 0.0006105612634912637,
+      "absolute_z": 2.512990830620967
+    }
+  ]
+}

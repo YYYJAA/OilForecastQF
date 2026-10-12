@@ -1,0 +1,229 @@
+{
+  "fingerprint": "a1049e7338bd24eff8a99c4ae35dd0853303b23f6fcf4610e58d1c61be50919e",
+  "fits": [
+    {
+      "phase": "validation",
+      "path": "conservative-switching-w756-r63",
+      "fit_date": "2022-01-03",
+      "window_start": "2019-01-04",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1671.7575009110658,
+          "occupancy_min": 0.14429997928143612,
+          "warnings": []
+        },
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1671.757503339102,
+          "occupancy_min": 0.14432381285260998,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-switching-w756-r63",
+      "fit_date": "2022-04-04",
+      "window_start": "2019-04-05",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1717.9771445464726,
+          "occupancy_min": 0.18126161655449619,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1717.9771412261139,
+          "occupancy_min": 0.18124222956345212,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-switching-w756-r63",
+      "fit_date": "2022-07-06",
+      "window_start": "2019-07-08",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1754.069423625117,
+          "occupancy_min": 0.2117380031709306,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1754.0694208718887,
+          "occupancy_min": 0.21179344415050727,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-switching-w756-r63",
+      "fit_date": "2022-10-04",
+      "window_start": "2019-10-04",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1768.679413390913,
+          "occupancy_min": 0.21728643900161415,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1768.6794127423882,
+          "occupancy_min": 0.21731480662656177,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-switching-w756-r63",
+      "fit_date": "2023-01-04",
+      "window_start": "2020-01-06",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1797.2651735996114,
+          "occupancy_min": 0.19428326709106103,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1797.2651732074473,
+          "occupancy_min": 0.19426946362571942,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-switching-w756-r63",
+      "fit_date": "2023-04-05",
+      "window_start": "2020-04-06",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1742.3861963246445,
+          "occupancy_min": 0.2223821735433311,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1742.3862003381714,
+          "occupancy_min": 0.22240421700793947,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-switching-w756-r63",
+      "fit_date": "2023-07-07",
+      "window_start": "2020-07-07",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1674.6922693306037,
+          "occupancy_min": 0.26487942044443485,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1674.6922693238153,
+          "occupancy_min": 0.264938704543159,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-switching-w756-r63",
+      "fit_date": "2023-10-05",
+      "window_start": "2020-10-05",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1660.0381173599626,
+          "occupancy_min": 0.39497222007222416,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1660.038117344944,
+          "occupancy_min": 0.3949569954355854,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    }
+  ]
+}

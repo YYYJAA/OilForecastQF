@@ -1,0 +1,229 @@
+{
+  "fingerprint": "101c534f240fbda2c8e873f9fa63cc02c3d7b990402dfbe29aabb8f7f70a94c7",
+  "fits": [
+    {
+      "phase": "validation",
+      "path": "conservative-zero-w504-r63",
+      "fit_date": "2022-01-03",
+      "window_start": "2020-01-06",
+      "observations": 504,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1167.6982794236378,
+          "occupancy_min": 0.1782976115468203,
+          "warnings": []
+        },
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1167.6982838664912,
+          "occupancy_min": 0.17824399555392564,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-zero-w504-r63",
+      "fit_date": "2022-04-04",
+      "window_start": "2020-04-06",
+      "observations": 504,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1143.187624828137,
+          "occupancy_min": 0.23482855589008134,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1143.1876247885812,
+          "occupancy_min": 0.23481884638366515,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-zero-w504-r63",
+      "fit_date": "2022-07-06",
+      "window_start": "2020-07-07",
+      "observations": 504,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1103.1794806372584,
+          "occupancy_min": 0.3157219029248844,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1103.1794806610048,
+          "occupancy_min": 0.31571383836073974,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-zero-w504-r63",
+      "fit_date": "2022-10-04",
+      "window_start": "2020-10-05",
+      "observations": 504,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1133.6280847054281,
+          "occupancy_min": 0.3347209024614975,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1133.6280850941357,
+          "occupancy_min": 0.3346985326245917,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-zero-w504-r63",
+      "fit_date": "2023-01-04",
+      "window_start": "2021-01-05",
+      "observations": 504,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1139.511911443675,
+          "occupancy_min": 0.2573849530912627,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1139.5119114535592,
+          "occupancy_min": 0.25738392990834186,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-zero-w504-r63",
+      "fit_date": "2023-04-05",
+      "window_start": "2021-04-07",
+      "observations": 504,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1136.0758889365993,
+          "occupancy_min": 0.22493259418340134,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1136.075888633342,
+          "occupancy_min": 0.22490694333726471,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-zero-w504-r63",
+      "fit_date": "2023-07-07",
+      "window_start": "2021-07-07",
+      "observations": 504,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": false,
+          "converged": true,
+          "llf": -1165.191405072728,
+          "occupancy_min": 0.10745851250346018,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1155.9240075419063,
+          "occupancy_min": 0.1731519093994079,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-zero-w504-r63",
+      "fit_date": "2023-10-05",
+      "window_start": "2021-10-05",
+      "observations": 504,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1142.825323148484,
+          "occupancy_min": 0.20782780845347087,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1142.8253232946954,
+          "occupancy_min": 0.20782208363062557,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    }
+  ]
+}

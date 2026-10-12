@@ -1,0 +1,29 @@
+{
+  "source_path": "C:\\Users\\uniqu\\OneDrive\\QF5210 Project\\OilForecastQF\\Data\\raw\\yahoo_daily.csv",
+  "source_sha256": "b01eba9484f6e06d76053b6928764fada6b1c4e6665631aaf0f0ce639ba1cdc7",
+  "price_count": 4779,
+  "first_date": "2007-07-30",
+  "last_date": "2026-10-09",
+  "source_tickers": {
+    "brent_fut": "BZ=F",
+    "wti_fut": "CL=F",
+    "dxy": "DX-Y.NYB"
+  },
+  "source_definition": "Local Yahoo unadjusted front-month futures closes; contract-roll jumps retained",
+  "causally_filled_quote_counts": {
+    "wti_fut": 1,
+    "dxy": 2
+  },
+  "causal_fill_limit_brent_observations": 3,
+  "nonpositive_wti_quotes": 1,
+  "feature_definition": {
+    "wti_change_usd": "WTI close dollar change between available Brent observations",
+    "dxy_log_return_pct": "100*log(DXY_t/DXY_previous_Brent_observation)",
+    "brent_wti_spread_usd": "Brent futures close minus WTI futures close, USD/barrel"
+  },
+  "feature_availability": "Fit/filter X_t=current_features_(t-1); first future X_(t+1)=current_features_t",
+  "scaling": "Fit-window means and SDs only; scaler fixed between refits",
+  "missing_initial_feature_rows": 2,
+  "no_brent_interpolation": true,
+  "no_fresh_download": true
+}

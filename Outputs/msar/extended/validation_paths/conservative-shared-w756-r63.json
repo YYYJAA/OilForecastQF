@@ -1,0 +1,229 @@
+{
+  "fingerprint": "ea3ea31303c80d0330abc7f28dec7f760aa9f71065d347480c2dd8696e4f616d",
+  "fits": [
+    {
+      "phase": "validation",
+      "path": "conservative-shared-w756-r63",
+      "fit_date": "2022-01-03",
+      "window_start": "2019-01-04",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1672.556140847836,
+          "occupancy_min": 0.14348853987496865,
+          "warnings": []
+        },
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1672.5561381099897,
+          "occupancy_min": 0.1435012085951258,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-shared-w756-r63",
+      "fit_date": "2022-04-04",
+      "window_start": "2019-04-05",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1718.5787735938127,
+          "occupancy_min": 0.18019099481582015,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1718.5787749045815,
+          "occupancy_min": 0.1801885638454494,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-shared-w756-r63",
+      "fit_date": "2022-07-06",
+      "window_start": "2019-07-08",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1754.9751604684163,
+          "occupancy_min": 0.21088397720597715,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1754.9751633303074,
+          "occupancy_min": 0.21086975265605004,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-shared-w756-r63",
+      "fit_date": "2022-10-04",
+      "window_start": "2019-10-04",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1770.0501874363154,
+          "occupancy_min": 0.2150512265505981,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1770.0501921861473,
+          "occupancy_min": 0.21504092875060374,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-shared-w756-r63",
+      "fit_date": "2023-01-04",
+      "window_start": "2020-01-06",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1798.1451094465929,
+          "occupancy_min": 0.18925139297548013,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1798.14510808041,
+          "occupancy_min": 0.1893132350763286,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-shared-w756-r63",
+      "fit_date": "2023-04-05",
+      "window_start": "2020-04-06",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1743.2796628473989,
+          "occupancy_min": 0.21900986609850084,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1743.2796629596696,
+          "occupancy_min": 0.21900329779583755,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-shared-w756-r63",
+      "fit_date": "2023-07-07",
+      "window_start": "2020-07-07",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1677.228563575214,
+          "occupancy_min": 0.24497617347971523,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1677.2285637250343,
+          "occupancy_min": 0.24495633481248913,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    },
+    {
+      "phase": "validation",
+      "path": "conservative-shared-w756-r63",
+      "fit_date": "2023-10-05",
+      "window_start": "2020-10-05",
+      "observations": 756,
+      "attempts": [
+        {
+          "start": "cold",
+          "accepted": true,
+          "converged": true,
+          "llf": -1663.3338223311184,
+          "occupancy_min": 0.2547117631208723,
+          "warnings": []
+        },
+        {
+          "start": "warm",
+          "accepted": true,
+          "converged": true,
+          "llf": -1663.3338222861112,
+          "occupancy_min": 0.25466125226957353,
+          "warnings": []
+        }
+      ],
+      "scaler_means": [],
+      "scaler_sd": [],
+      "arx_control_converged": null
+    }
+  ]
+}

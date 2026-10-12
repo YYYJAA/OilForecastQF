@@ -1,0 +1,66 @@
+{
+  "status": "passed",
+  "synthetic_forecast_specification": "MS-AR(2)-switching-AR",
+  "enumeration_horizons": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "exact_mean_log_returns": [
+    -0.0005098671450007391,
+    -0.0016843393261109381,
+    -0.002482084002411903,
+    -0.002987363723903829,
+    -0.0034087212193328192,
+    -0.0038118448364215297
+  ],
+  "enumerated_mean_log_returns": [
+    -0.0005098671450007391,
+    -0.0016843393261109377,
+    -0.0024820840024119026,
+    -0.002987363723903831,
+    -0.0034087212193328166,
+    -0.0038118448364215353
+  ],
+  "maximum_absolute_enumeration_discrepancy": 5.637851296924623e-18,
+  "maximum_absolute_transition_probability_discrepancy": 1.1102230246251565e-16,
+  "simulation_checks": {
+    "one_step_enumeration_passed": true,
+    "simulation_mean_checks": [
+      {
+        "horizon": 1,
+        "exact_mean_log_return": -0.0005098671450007391,
+        "simulation_mean": -0.0004997248715734168,
+        "simulation_mc_se": 2.8457929657236574e-05,
+        "absolute_z": 0.3563953368878729
+      },
+      {
+        "horizon": 5,
+        "exact_mean_log_return": -0.0034087212193328192,
+        "simulation_mean": -0.003611418649869903,
+        "simulation_mc_se": 7.64103662611559e-05,
+        "absolute_z": 2.6527477939878352
+      },
+      {
+        "horizon": 60,
+        "exact_mean_log_return": -0.019565082767899696,
+        "simulation_mean": -0.020099695471786187,
+        "simulation_mc_se": 0.0002975276671825462,
+        "absolute_z": 1.7968503868868195
+      }
+    ]
+  },
+  "seeded_fitting": {
+    "same_seed_identical_parameters": true,
+    "maximum_absolute_parameter_discrepancy": 0.0,
+    "same_seed_identical_likelihood": true,
+    "accepted_attempts_each_run": [
+      2,
+      2
+    ]
+  },
+  "statsmodels_version": "0.15.0"
+}

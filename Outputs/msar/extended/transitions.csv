@@ -1,0 +1,9 @@
+model,from_regime,to_regime,probability
+V2 conservative,low_vol,low_vol,0.9828548511175096
+V2 conservative,low_vol,high_vol,0.017145148882490413
+V2 conservative,high_vol,low_vol,0.06467204137202263
+V2 conservative,high_vol,high_vol,0.9353279586279774
+V2 MS-ARX,low_vol,low_vol,0.9852970953785058
+V2 MS-ARX,low_vol,high_vol,0.01470290462149415
+V2 MS-ARX,high_vol,low_vol,0.05442108385168965
+V2 MS-ARX,high_vol,high_vol,0.9455789161483104

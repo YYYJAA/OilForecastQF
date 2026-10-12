@@ -1,0 +1,138 @@
+{
+  "version": "2.1",
+  "config": {
+    "input_path": "C:\\Users\\uniqu\\OneDrive\\QF5210 Project\\OilForecastQF\\Data\\raw\\yahoo_daily.csv",
+    "output_dir": "C:\\Users\\uniqu\\OneDrive\\QF5210 Project\\OilForecastQF\\standalone_msar\\outputs_v2",
+    "original_dir": "C:\\Users\\uniqu\\OneDrive\\QF5210 Project\\OilForecastQF\\standalone_msar\\outputs",
+    "horizons": [
+      1,
+      5,
+      10,
+      20,
+      40,
+      60
+    ],
+    "windows": [
+      504,
+      756,
+      1260
+    ],
+    "refit_schedules": [
+      21,
+      63
+    ],
+    "weights": [
+      0.0,
+      0.25,
+      0.5,
+      1.0
+    ],
+    "validation_start": "2022-01-01",
+    "test_start": "2024-01-01",
+    "n_sim": 3000,
+    "latest_n_sim": 50000,
+    "seed": 5210
+  },
+  "data": {
+    "source_path": "C:\\Users\\uniqu\\OneDrive\\QF5210 Project\\OilForecastQF\\Data\\raw\\yahoo_daily.csv",
+    "source_sha256": "b01eba9484f6e06d76053b6928764fada6b1c4e6665631aaf0f0ce639ba1cdc7",
+    "price_count": 4779,
+    "first_date": "2007-07-30",
+    "last_date": "2026-10-09",
+    "source_tickers": {
+      "brent_fut": "BZ=F",
+      "wti_fut": "CL=F",
+      "dxy": "DX-Y.NYB"
+    },
+    "source_definition": "Local Yahoo unadjusted front-month futures closes; contract-roll jumps retained",
+    "causally_filled_quote_counts": {
+      "wti_fut": 1,
+      "dxy": 2
+    },
+    "causal_fill_limit_brent_observations": 3,
+    "nonpositive_wti_quotes": 1,
+    "feature_definition": {
+      "wti_change_usd": "WTI close dollar change between available Brent observations",
+      "dxy_log_return_pct": "100*log(DXY_t/DXY_previous_Brent_observation)",
+      "brent_wti_spread_usd": "Brent futures close minus WTI futures close, USD/barrel"
+    },
+    "feature_availability": "Fit/filter X_t=current_features_(t-1); first future X_(t+1)=current_features_t",
+    "scaling": "Fit-window means and SDs only; scaler fixed between refits",
+    "missing_initial_feature_rows": 2,
+    "no_brent_interpolation": true,
+    "no_fresh_download": true
+  },
+  "selected_models": {
+    "conservative": {
+      "family": "conservative",
+      "mean_mode": "zero",
+      "window": 1260,
+      "refit_every": 63,
+      "path": "conservative-zero-w1260-r63",
+      "mean_weight": 0.0,
+      "validation_score": 1.0,
+      "validation_improvement_vs_rw_pct": 0.0,
+      "n_origins": 442,
+      "rmse_ratio_h1": 1.0,
+      "rmse_ratio_h5": 1.0,
+      "rmse_ratio_h10": 1.0,
+      "rmse_ratio_h20": 1.0,
+      "rmse_ratio_h40": 1.0,
+      "rmse_ratio_h60": 1.0
+    },
+    "msarx": {
+      "family": "msarx",
+      "mean_mode": "shared",
+      "window": 756,
+      "refit_every": 63,
+      "path": "msarx-shared-w756-r63",
+      "mean_weight": 0.25,
+      "validation_score": 0.9834455853538867,
+      "validation_improvement_vs_rw_pct": 1.6554414646113291,
+      "n_origins": 442,
+      "rmse_ratio_h1": 0.9956315092810164,
+      "rmse_ratio_h5": 0.9929738163092474,
+      "rmse_ratio_h10": 0.9841325653242811,
+      "rmse_ratio_h20": 0.9746964954252125,
+      "rmse_ratio_h40": 0.9725993092171415,
+      "rmse_ratio_h60": 0.9806398165664209
+    }
+  },
+  "preferred_family_by_validation": "msarx",
+  "n_fitting_paths_planned": 24,
+  "n_fitting_paths_completed": 24,
+  "n_scored_weight_combinations": 96,
+  "n_rejected_paths": 0,
+  "n_validation_origins": 442,
+  "n_test_origins": 638,
+  "validation_first_origin": "2022-01-03",
+  "validation_last_origin": "2023-10-05",
+  "validation_last_target": "2023-12-29",
+  "test_first_origin": "2024-01-02",
+  "test_last_origin": "2026-07-16",
+  "test_last_target": "2026-10-09",
+  "latest_asof": "2026-10-09",
+  "latest_price": 104.72000122070312,
+  "selection_rule": "Lowest equal-weight mean horizon-specific return RMSE ratio to RW; validation only; one global weight per family",
+  "tie_rule": "Scores within1e-10: smaller mean weight, longer window, slower refit, fewer mean parameters; overall prefer conservative on ties",
+  "evaluation_status": "EXPLORATORY: 2024+ test was inspected before designing V2; it is not a fresh untouched confirmation sample",
+  "predictor_scenario": "First future inputs use origin-known WTI dollar change, DXY log return and Brent-WTI dollar spread. Thereafter changes=0 and spread frozen at origin. This is a conditional input path, not a coherent joint oil-price scenario.",
+  "arx_mean_structure": "Shared intercept, AR and predictor coefficients across states; regimes affect variance and estimation, not separate conditional mean relationships",
+  "interval_definition": "Conditional Gaussian80/95% prediction intervals; future predictor path fixed; excludes predictor-path, parameter and model uncertainty",
+  "shrinkage_definition": "Multiply exact mean cumulative log return by selected weight; translate simulated cumulative paths by the mean change while retaining noise dispersion",
+  "price_point_definition": "P_t*exp(adjusted expected cumulative log return), distinct from simulated arithmetic expected price/median",
+  "benchmark_control": "Ordinary single-regime regression with AR(1) errors (SARIMAX), identical selectedARXwindow/refits/scaler/future inputs and weight; raw comparison also saved",
+  "future_dates": "Indicative weekdays, not exchange-holiday-adjusted; horizons count observed Brent steps",
+  "no_significance_claim": "Overlapping daily multi-step errors and development reuse make differences descriptive",
+  "tail_extension_status": "Student-t errors or separate interval recalibration were not included in this round; current intervals remain Gaussian",
+  "n_fit_events": 382,
+  "elapsed_seconds": 1149.61,
+  "versions": {
+    "python": "3.11.1",
+    "numpy": "1.24.3",
+    "pandas": "2.2.3",
+    "scipy": "1.10.1",
+    "statsmodels": "0.15.0",
+    "matplotlib": "3.7.1"
+  }
+}

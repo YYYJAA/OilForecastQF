@@ -1,0 +1,19 @@
+{
+  "source_path": "C:\\Users\\uniqu\\OneDrive\\QF5210 Project\\OilForecastQF\\Data\\raw\\yahoo_daily.csv",
+  "source_sha256": "b01eba9484f6e06d76053b6928764fada6b1c4e6665631aaf0f0ce639ba1cdc7",
+  "target": "brent_fut",
+  "ticker": "BZ=F",
+  "source_provider": "Yahoo Finance, according to local download script",
+  "series_definition": "Unadjusted front-month Brent futures Close, USD/barrel; contract-roll jumps retained",
+  "observed_prices": 4779,
+  "observed_daily_returns": 4778,
+  "first_date": "2007-07-30",
+  "last_date": "2026-10-09",
+  "duplicate_dates": 0,
+  "nonpositive_prices": 0,
+  "missing_rows_in_union_calendar": 7171,
+  "internal_missing_rows_in_union_calendar": 59,
+  "maximum_observed_calendar_gap_days": 17,
+  "missing_treatment": "Drop absent Brent observations, no filling; holidays and genuine missing quotes not independently distinguished",
+  "no_fresh_download": true
+}

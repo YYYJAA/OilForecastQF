@@ -34,10 +34,29 @@ Refit frequency was tested on 2016-2026 (refit every 21 / 63 / 252 days): 63 vs 
 | `scripts/` | entry points: `update_data`, `run_daily`, `send_email`, `train_models`, `send_retrain_email` |
 
 ## Models in the pipeline
+
+Model families are fitted separately and share input data and pipeline utilities.
+Forecast combinations are explicitly defined within a family, such as the LASSO
+equal-weight combination.
+
 | Plugin | Models | Series | Notes |
 |---|---|---|---|
 | `lasso_family` | No change, LASSO, LASSO 1-SE, PCA, targeted PCA, regime LASSO, equal-weight combo | `cfg.target` (Brent) | from `lasso.ipynb`; HMM regime features |
 | `arma_garch` | ARMA-GARCH (MA(2) mean, GARCH(1,1)-t) | Brent and WTI futures | from `gp_arma_garch.ipynb`; forecasts about no change, its value is the volatility band (all horizons) |
+
+## MS-AR research notebook
+
+`msar.ipynb` sits alongside `gp_arma_garch.ipynb` and `lasso.ipynb`. It contains all
+MS-AR/MS-ARX model code, configuration, backtesting, numerical checks, tables and
+plots. Open it from `OilForecastQF` and run all cells. It uses
+`Data/raw/yahoo_daily.csv` and saves evidence under `Outputs/msar/baseline/` and
+`Outputs/msar/extended/`.
+
+The default run loads existing results and verifies them. Set `RERUN_MODEL = True`
+in the setup cell to refit the baseline and follow-up in order after updating the
+source CSV. MS-AR is not yet a registered daily forecasting plugin. Its reused
+2024+ test comparison remains exploratory. Earlier implementation files are
+archived outside the repository at `../tmp/msar_before_notebook_only/`.
 
 ## How models share tables and charts
 * All models report, for one target series, the expected log return over *h* trading days and a 1-sd

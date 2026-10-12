@@ -1,0 +1,1292 @@
+[
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2022-01-03",
+    "window_start": "2017-01-03",
+    "observations": 1260,
+    "llf": -2641.739916625161,
+    "aic": 5297.479833250322,
+    "bic": 5333.446344488633,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2641.739916625161,
+        "converged": true,
+        "occupancy_min": 0.11702568104780832,
+        "second_moment_radius": 0.0004507173581470511,
+        "warnings": []
+      },
+      {
+        "attempt": "second_search",
+        "accepted": true,
+        "llf": -2641.7399323222016,
+        "converged": true,
+        "occupancy_min": 0.11705407983233035,
+        "second_moment_radius": 0.00045115385616104547,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2022-04-04",
+    "window_start": "2017-04-04",
+    "observations": 1260,
+    "llf": -2686.9173121631256,
+    "aic": 5387.834624326251,
+    "bic": 5423.801135564561,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2686.9173225623517,
+        "converged": true,
+        "occupancy_min": 0.14168531509116378,
+        "second_moment_radius": 0.00029928820529510084,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2686.9173121631256,
+        "converged": true,
+        "occupancy_min": 0.1417297450838185,
+        "second_moment_radius": 0.0002995527420738955,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2022-07-06",
+    "window_start": "2017-07-05",
+    "observations": 1260,
+    "llf": -2726.8729053200486,
+    "aic": 5467.745810640097,
+    "bic": 5503.712321878407,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2726.8729053200486,
+        "converged": true,
+        "occupancy_min": 0.17227531487376624,
+        "second_moment_radius": 0.00039761469759131367,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2726.8729057473593,
+        "converged": true,
+        "occupancy_min": 0.17227707405059606,
+        "second_moment_radius": 0.0003975810869246133,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2022-10-04",
+    "window_start": "2017-10-03",
+    "observations": 1260,
+    "llf": -2775.864909797973,
+    "aic": 5565.729819595946,
+    "bic": 5601.6963308342565,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2775.8649167899935,
+        "converged": true,
+        "occupancy_min": 0.1850934996410321,
+        "second_moment_radius": 0.0009351358535462748,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2775.864909797973,
+        "converged": true,
+        "occupancy_min": 0.1851255144362361,
+        "second_moment_radius": 0.0009349498872405903,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2023-01-04",
+    "window_start": "2018-01-03",
+    "observations": 1260,
+    "llf": -2813.6788761964444,
+    "aic": 5641.357752392889,
+    "bic": 5677.324263631199,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2813.6788826405964,
+        "converged": true,
+        "occupancy_min": 0.174374680621627,
+        "second_moment_radius": 0.0020116969894382396,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2813.6788761964444,
+        "converged": true,
+        "occupancy_min": 0.174401609335266,
+        "second_moment_radius": 0.0020123419938461607,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2023-04-05",
+    "window_start": "2018-04-05",
+    "observations": 1260,
+    "llf": -2835.699248469211,
+    "aic": 5685.398496938422,
+    "bic": 5721.365008176732,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2835.699248469211,
+        "converged": true,
+        "occupancy_min": 0.1694530754601665,
+        "second_moment_radius": 0.0021579056139440778,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2835.6992581236404,
+        "converged": true,
+        "occupancy_min": 0.16941818378330167,
+        "second_moment_radius": 0.0021580476059243833,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2023-07-07",
+    "window_start": "2018-07-05",
+    "observations": 1260,
+    "llf": -2853.1479296897833,
+    "aic": 5720.2958593795665,
+    "bic": 5756.2623706178765,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2853.1479296897833,
+        "converged": true,
+        "occupancy_min": 0.16336961391047927,
+        "second_moment_radius": 0.0027659370426244443,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2853.147933037427,
+        "converged": true,
+        "occupancy_min": 0.16335263740819897,
+        "second_moment_radius": 0.002766527050943982,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2023-10-05",
+    "window_start": "2018-10-03",
+    "observations": 1260,
+    "llf": -2852.0139669719088,
+    "aic": 5718.0279339438175,
+    "bic": 5753.994445182128,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2852.013968316718,
+        "converged": true,
+        "occupancy_min": 0.16254866394319079,
+        "second_moment_radius": 0.00320081348339601,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2852.0139669719088,
+        "converged": true,
+        "occupancy_min": 0.162512425967343,
+        "second_moment_radius": 0.0032012821084799904,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-switching-AR",
+    "fit_date": "2022-01-03",
+    "window_start": "2017-01-03",
+    "observations": 1260,
+    "llf": -2641.6529558368215,
+    "aic": 5299.305911673643,
+    "bic": 5340.410495945998,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2641.6529752776178,
+        "converged": true,
+        "occupancy_min": 0.11688631149702167,
+        "second_moment_radius": 0.0025845451347216277,
+        "warnings": []
+      },
+      {
+        "attempt": "second_search",
+        "accepted": true,
+        "llf": -2641.6529558368215,
+        "converged": true,
+        "occupancy_min": 0.11687319055394006,
+        "second_moment_radius": 0.002577052937388748,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-switching-AR",
+    "fit_date": "2022-04-04",
+    "window_start": "2017-04-04",
+    "observations": 1260,
+    "llf": -2686.789611086676,
+    "aic": 5389.579222173352,
+    "bic": 5430.683806445707,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2686.7896272368143,
+        "converged": true,
+        "occupancy_min": 0.141519724606041,
+        "second_moment_radius": 0.002547498931148545,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2686.789611086676,
+        "converged": true,
+        "occupancy_min": 0.14155939837193765,
+        "second_moment_radius": 0.0025480579177115568,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-switching-AR",
+    "fit_date": "2022-07-06",
+    "window_start": "2017-07-05",
+    "observations": 1260,
+    "llf": -2726.73962547813,
+    "aic": 5469.47925095626,
+    "bic": 5510.5838352286155,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2726.73962547813,
+        "converged": true,
+        "occupancy_min": 0.17204985528482125,
+        "second_moment_radius": 0.0024706758462723667,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2726.739626431541,
+        "converged": true,
+        "occupancy_min": 0.1720458384911096,
+        "second_moment_radius": 0.0024714943284450375,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-switching-AR",
+    "fit_date": "2022-10-04",
+    "window_start": "2017-10-03",
+    "observations": 1260,
+    "llf": -2775.827769711549,
+    "aic": 5567.655539423098,
+    "bic": 5608.760123695453,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2775.827772705903,
+        "converged": true,
+        "occupancy_min": 0.18498490151734806,
+        "second_moment_radius": 0.0019673305350033053,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2775.827769711549,
+        "converged": true,
+        "occupancy_min": 0.18500284824490076,
+        "second_moment_radius": 0.001968122592574632,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-switching-AR",
+    "fit_date": "2023-01-04",
+    "window_start": "2018-01-03",
+    "observations": 1260,
+    "llf": -2813.6785889088014,
+    "aic": 5643.357177817603,
+    "bic": 5684.461762089958,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2813.6785894914738,
+        "converged": true,
+        "occupancy_min": 0.1743879529665635,
+        "second_moment_radius": 0.00202693185845833,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2813.6785889088014,
+        "converged": true,
+        "occupancy_min": 0.17437805632171238,
+        "second_moment_radius": 0.0020272113088799656,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-switching-AR",
+    "fit_date": "2023-04-05",
+    "window_start": "2018-04-05",
+    "observations": 1260,
+    "llf": -2835.6987302221487,
+    "aic": 5687.397460444297,
+    "bic": 5728.502044716653,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2835.6987302221487,
+        "converged": true,
+        "occupancy_min": 0.16944368768172358,
+        "second_moment_radius": 0.002183264428431409,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2835.698737846921,
+        "converged": true,
+        "occupancy_min": 0.16940230475347567,
+        "second_moment_radius": 0.002183827155611868,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-switching-AR",
+    "fit_date": "2023-07-07",
+    "window_start": "2018-07-05",
+    "observations": 1260,
+    "llf": -2853.14645938783,
+    "aic": 5722.29291877566,
+    "bic": 5763.397503048015,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2853.14645938783,
+        "converged": true,
+        "occupancy_min": 0.1634037790189014,
+        "second_moment_radius": 0.002809344769467462,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2853.1464616731296,
+        "converged": true,
+        "occupancy_min": 0.16338296511215855,
+        "second_moment_radius": 0.0028090364851805125,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(1)-switching-AR",
+    "fit_date": "2023-10-05",
+    "window_start": "2018-10-03",
+    "observations": 1260,
+    "llf": -2852.0099363977847,
+    "aic": 5720.019872795569,
+    "bic": 5761.124457067925,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2852.009940771636,
+        "converged": true,
+        "occupancy_min": 0.16253369281228908,
+        "second_moment_radius": 0.0032915062121333383,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2852.0099363977847,
+        "converged": true,
+        "occupancy_min": 0.16258223223600113,
+        "second_moment_radius": 0.003292343591669022,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-shared-AR",
+    "fit_date": "2022-01-03",
+    "window_start": "2017-01-03",
+    "observations": 1260,
+    "llf": -2636.856908272891,
+    "aic": 5289.713816545782,
+    "bic": 5330.812044043865,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2636.856908787441,
+        "converged": true,
+        "occupancy_min": 0.12023852541683291,
+        "second_moment_radius": 0.05525091457935675,
+        "warnings": []
+      },
+      {
+        "attempt": "second_search",
+        "accepted": true,
+        "llf": -2636.856908272891,
+        "converged": true,
+        "occupancy_min": 0.1202398886196929,
+        "second_moment_radius": 0.05525323810481077,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-shared-AR",
+    "fit_date": "2022-04-04",
+    "window_start": "2017-04-04",
+    "observations": 1260,
+    "llf": -2682.5767685060173,
+    "aic": 5381.153537012035,
+    "bic": 5422.251764510118,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2682.5767685060173,
+        "converged": true,
+        "occupancy_min": 0.14490591184344562,
+        "second_moment_radius": 0.05868584696480673,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2682.576773646985,
+        "converged": true,
+        "occupancy_min": 0.14493729795566637,
+        "second_moment_radius": 0.058685640750480474,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-shared-AR",
+    "fit_date": "2022-07-06",
+    "window_start": "2017-07-05",
+    "observations": 1260,
+    "llf": -2720.988714532752,
+    "aic": 5457.977429065504,
+    "bic": 5499.0756565635875,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2720.988723892169,
+        "converged": true,
+        "occupancy_min": 0.17559533855368084,
+        "second_moment_radius": 0.0724913110733333,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2720.988714532752,
+        "converged": true,
+        "occupancy_min": 0.17565523657093549,
+        "second_moment_radius": 0.07248858952996706,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-shared-AR",
+    "fit_date": "2022-10-04",
+    "window_start": "2017-10-03",
+    "observations": 1260,
+    "llf": -2769.1039805966866,
+    "aic": 5554.207961193373,
+    "bic": 5595.306188691457,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2769.1039807663356,
+        "converged": true,
+        "occupancy_min": 0.1908711094794565,
+        "second_moment_radius": 0.09247071867302786,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2769.1039805966866,
+        "converged": true,
+        "occupancy_min": 0.19087351114261725,
+        "second_moment_radius": 0.09246840304636227,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-shared-AR",
+    "fit_date": "2023-01-04",
+    "window_start": "2018-01-03",
+    "observations": 1260,
+    "llf": -2808.450854000831,
+    "aic": 5632.901708001662,
+    "bic": 5673.999935499745,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2808.450854000831,
+        "converged": true,
+        "occupancy_min": 0.18230780675324712,
+        "second_moment_radius": 0.08083945676593263,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2808.450861286719,
+        "converged": true,
+        "occupancy_min": 0.18236787784993383,
+        "second_moment_radius": 0.08083402942393979,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-shared-AR",
+    "fit_date": "2023-04-05",
+    "window_start": "2018-04-05",
+    "observations": 1260,
+    "llf": -2829.9904638489934,
+    "aic": 5675.980927697987,
+    "bic": 5717.07915519607,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2829.990466152628,
+        "converged": true,
+        "occupancy_min": 0.17925263403045455,
+        "second_moment_radius": 0.07996486893359636,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2829.9904638489934,
+        "converged": true,
+        "occupancy_min": 0.1793041462386038,
+        "second_moment_radius": 0.0799549446227603,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-shared-AR",
+    "fit_date": "2023-07-07",
+    "window_start": "2018-07-05",
+    "observations": 1260,
+    "llf": -2848.540643430527,
+    "aic": 5713.081286861054,
+    "bic": 5754.179514359137,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2848.540643430527,
+        "converged": true,
+        "occupancy_min": 0.17261893167106232,
+        "second_moment_radius": 0.07381395868835723,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2848.5406558446302,
+        "converged": true,
+        "occupancy_min": 0.172702046278663,
+        "second_moment_radius": 0.07381545748176245,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-shared-AR",
+    "fit_date": "2023-10-05",
+    "window_start": "2018-10-03",
+    "observations": 1260,
+    "llf": -2847.0662975568066,
+    "aic": 5710.132595113613,
+    "bic": 5751.230822611697,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2847.0662975568066,
+        "converged": true,
+        "occupancy_min": 0.1736246651834408,
+        "second_moment_radius": 0.06915356944648345,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2847.066302615131,
+        "converged": true,
+        "occupancy_min": 0.17365389803888515,
+        "second_moment_radius": 0.06915215771145383,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-switching-AR",
+    "fit_date": "2022-01-03",
+    "window_start": "2017-01-03",
+    "observations": 1260,
+    "llf": -2635.830687188602,
+    "aic": 5291.661374377204,
+    "bic": 5343.034158749808,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2635.830687188602,
+        "converged": true,
+        "occupancy_min": 0.12194016876293733,
+        "second_moment_radius": 0.06734453914862487,
+        "warnings": []
+      },
+      {
+        "attempt": "second_search",
+        "accepted": true,
+        "llf": -2635.8306912491994,
+        "converged": true,
+        "occupancy_min": 0.12191860125419339,
+        "second_moment_radius": 0.06735021085272619,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-switching-AR",
+    "fit_date": "2022-04-04",
+    "window_start": "2017-04-04",
+    "observations": 1260,
+    "llf": -2681.1518823636698,
+    "aic": 5382.3037647273395,
+    "bic": 5433.676549099943,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2681.1518823636698,
+        "converged": true,
+        "occupancy_min": 0.14644049684010685,
+        "second_moment_radius": 0.07494723927574558,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2681.1519066140727,
+        "converged": true,
+        "occupancy_min": 0.1464666106669395,
+        "second_moment_radius": 0.07494826552071777,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-switching-AR",
+    "fit_date": "2022-07-06",
+    "window_start": "2017-07-05",
+    "observations": 1260,
+    "llf": -2718.803958529573,
+    "aic": 5457.607917059146,
+    "bic": 5508.980701431749,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2718.803958529573,
+        "converged": true,
+        "occupancy_min": 0.17763746221616628,
+        "second_moment_radius": 0.09499795969193392,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2718.803960486274,
+        "converged": true,
+        "occupancy_min": 0.17761807114741576,
+        "second_moment_radius": 0.09499883339429682,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-switching-AR",
+    "fit_date": "2022-10-04",
+    "window_start": "2017-10-03",
+    "observations": 1260,
+    "llf": -2766.597115636938,
+    "aic": 5553.194231273876,
+    "bic": 5604.567015646479,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2766.597115636938,
+        "converged": true,
+        "occupancy_min": 0.19381315229090065,
+        "second_moment_radius": 0.11902691194204552,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2766.597116098611,
+        "converged": true,
+        "occupancy_min": 0.19379852713425658,
+        "second_moment_radius": 0.1190282150898854,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-switching-AR",
+    "fit_date": "2023-01-04",
+    "window_start": "2018-01-03",
+    "observations": 1260,
+    "llf": -2806.83220811718,
+    "aic": 5633.66441623436,
+    "bic": 5685.037200606964,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2806.832208296114,
+        "converged": true,
+        "occupancy_min": 0.18518943394578422,
+        "second_moment_radius": 0.10313104328129437,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2806.83220811718,
+        "converged": true,
+        "occupancy_min": 0.1851700577312393,
+        "second_moment_radius": 0.10312496002888272,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-switching-AR",
+    "fit_date": "2023-04-05",
+    "window_start": "2018-04-05",
+    "observations": 1260,
+    "llf": -2828.329280700046,
+    "aic": 5676.658561400092,
+    "bic": 5728.031345772696,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2828.329285784692,
+        "converged": true,
+        "occupancy_min": 0.18316745576741333,
+        "second_moment_radius": 0.1029727911221861,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2828.329280700046,
+        "converged": true,
+        "occupancy_min": 0.18320902545655995,
+        "second_moment_radius": 0.10297336564166545,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-switching-AR",
+    "fit_date": "2023-07-07",
+    "window_start": "2018-07-05",
+    "observations": 1260,
+    "llf": -2847.22395607939,
+    "aic": 5714.44791215878,
+    "bic": 5765.820696531384,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2847.22395607939,
+        "converged": true,
+        "occupancy_min": 0.17619185855803096,
+        "second_moment_radius": 0.09449677410370592,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2847.2239579727698,
+        "converged": true,
+        "occupancy_min": 0.17617106036717542,
+        "second_moment_radius": 0.09450754245238813,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "validation",
+    "specification": "MS-AR(2)-switching-AR",
+    "fit_date": "2023-10-05",
+    "window_start": "2018-10-03",
+    "observations": 1260,
+    "llf": -2845.6379000842344,
+    "aic": 5711.275800168469,
+    "bic": 5762.6485845410725,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2845.6379000842344,
+        "converged": true,
+        "occupancy_min": 0.17795073576555798,
+        "second_moment_radius": 0.09218425798063092,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2845.637900481759,
+        "converged": true,
+        "occupancy_min": 0.17795439539250563,
+        "second_moment_radius": 0.09218477511518201,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "test",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2024-01-02",
+    "window_start": "2019-01-02",
+    "observations": 1260,
+    "llf": -2840.566415818662,
+    "aic": 5695.132831637324,
+    "bic": 5731.099342875634,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2840.566415818662,
+        "converged": true,
+        "occupancy_min": 0.13047369819361915,
+        "second_moment_radius": 0.004178893222749136,
+        "warnings": []
+      },
+      {
+        "attempt": "second_search",
+        "accepted": true,
+        "llf": -2840.56642385555,
+        "converged": true,
+        "occupancy_min": 0.1304979744679185,
+        "second_moment_radius": 0.004179182647335793,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "test",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2024-04-03",
+    "window_start": "2019-04-03",
+    "observations": 1260,
+    "llf": -2840.516633193225,
+    "aic": 5695.03326638645,
+    "bic": 5730.99977762476,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2840.516633193225,
+        "converged": true,
+        "occupancy_min": 0.12992225365323962,
+        "second_moment_radius": 0.003555765498021922,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2840.5166488448867,
+        "converged": true,
+        "occupancy_min": 0.12986616385996225,
+        "second_moment_radius": 0.0035552733341322066,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "test",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2024-07-03",
+    "window_start": "2019-07-03",
+    "observations": 1260,
+    "llf": -2824.1385359149062,
+    "aic": 5662.2770718298125,
+    "bic": 5698.2435830681225,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2824.1385359149062,
+        "converged": true,
+        "occupancy_min": 0.13893068202618555,
+        "second_moment_radius": 0.0036931406572992364,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2824.1385430188766,
+        "converged": true,
+        "occupancy_min": 0.13894695227485818,
+        "second_moment_radius": 0.003693110479743244,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "test",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2024-10-02",
+    "window_start": "2019-10-02",
+    "observations": 1260,
+    "llf": -2806.7821945567384,
+    "aic": 5627.564389113477,
+    "bic": 5663.530900351787,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2806.7821945567384,
+        "converged": true,
+        "occupancy_min": 0.12614665760836857,
+        "second_moment_radius": 0.004048173778108196,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2806.78222173654,
+        "converged": true,
+        "occupancy_min": 0.12619398868158951,
+        "second_moment_radius": 0.0040496438059032976,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "test",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2025-01-02",
+    "window_start": "2020-01-02",
+    "observations": 1260,
+    "llf": -2825.166133028319,
+    "aic": 5664.332266056638,
+    "bic": 5700.298777294949,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2825.166133028319,
+        "converged": true,
+        "occupancy_min": 0.11746391457453133,
+        "second_moment_radius": 0.002868896340422006,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2825.1661521728074,
+        "converged": true,
+        "occupancy_min": 0.11746837087997598,
+        "second_moment_radius": 0.002869690032853816,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "test",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2025-04-03",
+    "window_start": "2020-04-02",
+    "observations": 1260,
+    "llf": -2757.839340776255,
+    "aic": 5529.67868155251,
+    "bic": 5565.64519279082,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2757.839340776255,
+        "converged": true,
+        "occupancy_min": 0.17474560769032385,
+        "second_moment_radius": 0.0015092213226736545,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2757.839348864668,
+        "converged": true,
+        "occupancy_min": 0.17481630434996645,
+        "second_moment_radius": 0.0015098880368851085,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "test",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2025-07-04",
+    "window_start": "2020-07-02",
+    "observations": 1260,
+    "llf": -2669.81197463869,
+    "aic": 5353.62394927738,
+    "bic": 5389.59046051569,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2669.81197463869,
+        "converged": true,
+        "occupancy_min": 0.4093571352099834,
+        "second_moment_radius": 2.1656832952436816e-06,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2669.8119766378422,
+        "converged": true,
+        "occupancy_min": 0.4094214940931867,
+        "second_moment_radius": 2.1871496051965663e-06,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "test",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2025-10-02",
+    "window_start": "2020-10-01",
+    "observations": 1260,
+    "llf": -2666.250311844867,
+    "aic": 5346.500623689734,
+    "bic": 5382.467134928045,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2666.250311869656,
+        "converged": true,
+        "occupancy_min": 0.3814283493869312,
+        "second_moment_radius": 8.732345889924971e-05,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2666.250311844867,
+        "converged": true,
+        "occupancy_min": 0.3814290084644566,
+        "second_moment_radius": 8.74409793088563e-05,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "test",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2026-01-02",
+    "window_start": "2020-12-31",
+    "observations": 1260,
+    "llf": -2646.530270702301,
+    "aic": 5307.060541404602,
+    "bic": 5343.027052642912,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2646.530270787467,
+        "converged": true,
+        "occupancy_min": 0.3455718035674716,
+        "second_moment_radius": 7.589564307640702e-05,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2646.530270702301,
+        "converged": true,
+        "occupancy_min": 0.3455819033116902,
+        "second_moment_radius": 7.591388922326169e-05,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "test",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2026-04-06",
+    "window_start": "2021-04-05",
+    "observations": 1260,
+    "llf": -2695.334375958219,
+    "aic": 5404.668751916438,
+    "bic": 5440.635263154749,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2695.334375958219,
+        "converged": true,
+        "occupancy_min": 0.1728330163040961,
+        "second_moment_radius": 0.00010226580360130708,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2695.3343772234534,
+        "converged": true,
+        "occupancy_min": 0.1728251600098794,
+        "second_moment_radius": 0.0001022360388561902,
+        "warnings": []
+      }
+    ]
+  },
+  {
+    "phase": "test",
+    "specification": "MS-AR(1)-shared-AR",
+    "fit_date": "2026-07-07",
+    "window_start": "2021-07-02",
+    "observations": 1260,
+    "llf": -2761.0896975148844,
+    "aic": 5536.179395029769,
+    "bic": 5572.145906268079,
+    "attempts": [
+      {
+        "attempt": "cold_search",
+        "accepted": true,
+        "llf": -2761.0896975148844,
+        "converged": true,
+        "occupancy_min": 0.20487654124084834,
+        "second_moment_radius": 6.978339152317959e-05,
+        "warnings": []
+      },
+      {
+        "attempt": "warm",
+        "accepted": true,
+        "llf": -2761.089704828737,
+        "converged": true,
+        "occupancy_min": 0.2048449509749034,
+        "second_moment_radius": 6.978025213260617e-05,
+        "warnings": []
+      }
+    ]
+  }
+]

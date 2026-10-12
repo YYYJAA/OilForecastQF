@@ -1,0 +1,54 @@
+{
+  "V2 conservative": {
+    "one_step_enumeration_passed": true,
+    "simulation_checks": [
+      {
+        "horizon": 1,
+        "exact_mean": 7.475121461515944e-05,
+        "mc_mean": 0.0001635224997805798,
+        "mc_se": 6.352984337799454e-05,
+        "absolute_z": 1.3973162917660986
+      },
+      {
+        "horizon": 5,
+        "exact_mean": 7.61022802378211e-05,
+        "mc_mean": 0.0002026735358570371,
+        "mc_se": 0.0001511850514161089,
+        "absolute_z": 0.8371942492571705
+      },
+      {
+        "horizon": 60,
+        "exact_mean": 7.610228037203323e-05,
+        "mc_mean": -0.001235498948426834,
+        "mc_se": 0.0006002137866585795,
+        "absolute_z": 2.1852234286396817
+      }
+    ]
+  },
+  "V2 MS-ARX": {
+    "one_step_enumeration_passed": true,
+    "simulation_checks": [
+      {
+        "horizon": 1,
+        "exact_mean": 0.001172183742882105,
+        "mc_mean": 0.001264272186249059,
+        "mc_se": 6.10789711081453e-05,
+        "absolute_z": 1.5076947384052013
+      },
+      {
+        "horizon": 5,
+        "exact_mean": 0.004602011111050819,
+        "mc_mean": 0.004729844414906284,
+        "mc_se": 0.00013430936516678049,
+        "absolute_z": 0.951782503749655
+      },
+      {
+        "horizon": 60,
+        "exact_mean": 0.0517133685136083,
+        "mc_mean": 0.050528515500055056,
+        "mc_se": 0.0005336806314632395,
+        "absolute_z": 2.2201536718779264
+      }
+    ]
+  }
+}
