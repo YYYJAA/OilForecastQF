@@ -2,7 +2,9 @@ name: Daily oil data, forecast and email
 
 on:
   schedule:
-    - cron: "17 22 * * 1-5"     # 22:17 UTC Mon-Fri = 06:17 Singapore Tue-Sat, after the US close
+    # Every day (day-of-week is `*`; note cron weekdays are read in UTC, so "1-5" skipped Monday morning SGT).
+    # 22:45 UTC is 06:45 Singapore. The first step holds the run until 23:00 UTC = 07:00 Singapore.
+    - cron: "45 22 * * *"
   workflow_dispatch:             # manual run from the Actions tab (all steps run by default)
     inputs:
       download_data:
@@ -32,7 +34,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +42,19 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+
+      - name: 0. Hold until 07:00 Singapore time (scheduled runs only)
+        if: ${{ github.event_name == 'schedule' }}
+        run: |
+          # GitHub may start a scheduled run late, never early. If it started 21:00-22:59 UTC, wait for 23:00 UTC.
+          h=$(date -u +%H)
+          if [ "$h" = "21" ] || [ "$h" = "22" ]; then
+            wait=$(( $(date -u -d "23:00" +%s) - $(date -u +%s) ))
+            echo "Started at $(date -u +%H:%M) UTC; waiting ${wait}s until 23:00 UTC (07:00 SGT)"
+            sleep "$wait"
+          else
+            echo "Started at $(date -u +%H:%M) UTC; no wait needed"
+          fi
 
       - run: pip install -r requirements.txt
 

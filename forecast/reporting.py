@@ -4,7 +4,7 @@ Design: every model reports, for one target series, the expected log return over
 1-sd uncertainty. Models are compared on the same series, so the e-mail has one panel per target series.
   * Forecast table  : price per model and horizon, with the change vs "no change" (grey when ~0).
   * Uncertainty     : the no-change band (recent volatility) next to model-based bands (GARCH).
-  * Chart           : actual prices + forecasts; models equal to no-change are drawn as ONE line.
+  * Chart           : actual prices + forecasts; models equal to no-change are drawn as ONE labelled line.
   * Track record    : RMSE vs no-change, and how often outcomes fell inside the +-1 sd band.
 A "No change" benchmark is always available (added from the price series if no plugin supplies it).
 """
@@ -209,7 +209,7 @@ def scorecard_html(sc, min_n=10):
 # --------------------------------------------------------------------------- chart
 def make_chart(price, cur, n_days=60, title_name=""):
     """Last n_days of actual prices, then forecasts out to the longest horizon with +-1 sd bands.
-    Models whose forecast equals no-change (within CHART_SAME) at every horizon are merged into the no-change line."""
+    Models whose forecast equals no-change (within CHART_SAME) at every horizon are drawn as ONE labelled line."""
     asof = cur["asof_date"].max()
     cur = cur[cur["asof_date"] == asof]
     hist = price.dropna().loc[:asof].iloc[-n_days:]
@@ -224,6 +224,8 @@ def make_chart(price, cur, n_days=60, title_name=""):
     fig, ax = plt.subplots(figsize=(10, 4.8))
     ax.plot(hist.index, hist.values, color="black", lw=2, label="Actual")
     xs = [asof] + list(rw["target_date_approx"])
+    ax.axvspan(asof, xs[-1], color="#f5f5f5", zorder=0)
+    ax.text(xs[-1], ax.get_ylim()[0], "forecast  ", ha="right", va="bottom", fontsize=8, color="#888")
     s0 = rw["sigma"].to_numpy()
     ax.plot(xs, [p0] + list(p0 * np.exp(s0)), color="grey", lw=0.9, ls=":", label="Recent-volatility +-1 sd")
     ax.plot(xs, [p0] + list(p0 * np.exp(-s0)), color="grey", lw=0.9, ls=":")
@@ -231,20 +233,28 @@ def make_chart(price, cur, n_days=60, title_name=""):
     for m in models:                                             # model-based uncertainty bands (e.g. GARCH)
         g = cur[cur["model"] == m].sort_values("horizon")
         if (g["sigma_kind"] != "rv20").any() and g["sigma"].notna().any():
-            f, s = g["forecast_price"].to_numpy(), g["sigma"].to_numpy()
-            ax.fill_between([asof] + list(g["target_date_approx"]), [p0] + list(f * np.exp(-s)), [p0] + list(f * np.exp(s)),
+            f, sg = g["forecast_price"].to_numpy(), g["sigma"].to_numpy()
+            ax.fill_between([asof] + list(g["target_date_approx"]), [p0] + list(f * np.exp(-sg)), [p0] + list(f * np.exp(sg)),
                             color="tab:blue", alpha=0.13, label=f"{label(m)} +-1 sd")
-    nc = "No change" + (f" (= {', '.join(label(m) for m in same)})" if same else "")
-    ax.plot(xs, [p0] + list(rw["forecast_price"]), color="dimgrey", ls="--", lw=1.6, label=nc)
+    ax.plot(xs, [p0] * len(xs), color="dimgrey", ls="--", lw=1.2, label="No change (current price)")
+
+    def draw(prices, name, color, lw=1.7):
+        ax.plot(xs, [p0] + list(prices), marker="o", ms=4.5, lw=lw, color=color, label=name, zorder=3)
+        ax.annotate(f"{prices[-1]:.1f}", (xs[-1], prices[-1]), xytext=(5, 0), textcoords="offset points",
+                    fontsize=8, color=color, va="center")
+
+    if same:                                                      # models that say "no change": still drawn, as ONE line
+        px = np.mean([cur[cur["model"] == m].sort_values("horizon")["forecast_price"].to_numpy() for m in same], axis=0)
+        draw(px, f"{', '.join(label(m) for m in same)} (about no change)", "#008080", lw=2.4)
     for m in distinct:
         g = cur[cur["model"] == m].sort_values("horizon")
-        ax.plot([asof] + list(g["target_date_approx"]), [p0] + list(g["forecast_price"]), marker="o", ms=4, lw=1.5,
-                color=cmap(ci % 10), label=label(m)); ci += 1
+        draw(g["forecast_price"].to_numpy(), label(m), cmap(ci % 10)); ci += 1
     ax.axvline(asof, color="k", lw=0.8, ls=":")
     ax.set_ylabel("Price (USD/bbl)")
     ax.set_title(f"{title_name}: last {n_days} trading days and forecasts to +{int(cur['horizon'].max())} days "
                  f"(as of {asof.date()})", fontsize=11)
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
+    ax.set_xlim(hist.index[0], xs[-1] + pd.Timedelta(days=10))
     ax.legend(fontsize=7.5, ncol=2, loc="upper left"); ax.grid(alpha=0.3)
     fig.tight_layout()
     buf = io.BytesIO(); fig.savefig(buf, format="png", dpi=130); plt.close(fig)
