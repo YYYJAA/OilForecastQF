@@ -17,10 +17,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-MODEL_ORDER = ["RW", "LASSO", "LASSO_1se", "PCA_reg", "TPCA", "LASSO_RS", "Combo_EW", "ARMA-GARCH", "MS-AR", "MS-ARX"]
+MODEL_ORDER = ["RW", "LASSO", "LASSO_1se", "PCA_reg", "TPCA", "LASSO_RS", "Combo_EW", "ARMA-GARCH", "MS-AR", "MS-ARX", "HistMean", "AR"]
 LABELS = {"RW": "No change", "LASSO": "LASSO", "LASSO_1se": "LASSO 1-SE", "PCA_reg": "PCA reg.",
           "TPCA": "Targeted PCA", "LASSO_RS": "LASSO regime", "Combo_EW": "Combo (equal wt)",
-          "ARMA-GARCH": "ARMA-GARCH", "MS-AR": "MS-AR", "MS-ARX": "MS-ARX"}
+          "ARMA-GARCH": "ARMA-GARCH", "MS-AR": "MS-AR", "MS-ARX": "MS-ARX",
+          "HistMean": "Historical mean", "AR": "AR (direct)"}
 TARGET_LABELS = {"brent_fut": "Brent futures", "wti_fut": "WTI futures"}
 CSS_TH = "padding:4px 8px;border-bottom:2px solid #444;text-align:right;font-weight:600"
 CSS_TD = "padding:4px 8px;border-bottom:1px solid #ddd;text-align:right"
@@ -41,16 +42,21 @@ def target_label(t):
     return TARGET_LABELS.get(t, t)
 
 
+# Table styling lives in ONE <style> block (put it in the <head> of every e-mail / report): inline styles repeated on
+# thousands of cells pushed the e-mail past Gmail's ~102 KB clipping limit.
+CSS = ("<style>table.t{border-collapse:collapse;font-family:Arial,sans-serif;font-size:12.5px}"
+       "table.t td,table.t th{padding:4px 8px;border-bottom:1px solid #ddd;text-align:right}"
+       "table.t th{border-bottom:2px solid #444;font-weight:600}"
+       "table.t .l{text-align:left}</style>")
+
+
 def _html_table(header, rows, first_left=True):
-    th = "".join(f"<th style='{CSS_TH}{';text-align:left' if (i == 0 and first_left) else ''}'>{h}</th>"
-                 for i, h in enumerate(header))
+    th = "".join(f"<th{' class=l' if (i == 0 and first_left) else ''}>{h}</th>" for i, h in enumerate(header))
     body = ""
     for r in rows:
-        tds = "".join(f"<td style='{CSS_TD}{';text-align:left' if (i == 0 and first_left) else ''}'>{c}</td>"
-                      for i, c in enumerate(r))
+        tds = "".join(f"<td{' class=l' if (i == 0 and first_left) else ''}>{c}</td>" for i, c in enumerate(r))
         body += f"<tr>{tds}</tr>"
-    return (f"<table style='border-collapse:collapse;font-family:Arial,sans-serif;font-size:12.5px'>"
-            f"<tr>{th}</tr>{body}</table>")
+    return f"<table class=t><tr>{th}</tr>{body}</table>"
 
 
 def _pct(x, d=1):

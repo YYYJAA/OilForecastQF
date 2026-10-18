@@ -128,7 +128,7 @@ def build(cfg):
     note_html = "".join(f"<p style='font-size:12px;color:#555;margin:4px 0'>{n}</p>" for n in notes)
 
     images.update(frozen_images)
-    html = f"""<html><body style="font-family:Arial,sans-serif;max-width:920px">
+    html = f"""<html><head>{rp.CSS}</head><body style="font-family:Arial,sans-serif;max-width:920px">
 <h1 style="margin-bottom:0">Oil forecast report</h1>
 {signal_html}
 {''.join(sections)}

@@ -4,3 +4,4 @@ email_preview/
 update_status.json
 run_status.json
 Outputs/frozen_eval/forecasts.csv
+.DS_Store

@@ -77,7 +77,15 @@ default 2024-12-31).
 * Evaluated horizons: 1, 2, 3, 5, 10, 20, 40, 60 days (tables). The charts are short-horizon and rolling: a
   `frozen_chart_horizon`-day (3) forecast is made every day and drawn against what happened, with the ARMA-GARCH band
   and how often the realised move fell inside it.
-* Outputs in `Outputs/frozen_eval/`; the e-mail gets a "Frozen-model check" section.
+* Also scored against two benchmarks that are NOT production models: historical mean and a direct AR (both estimated on
+  data up to the cutoff). Metrics per model and horizon: RMSE / MAE / MAPE, direction hit-rate, precision / recall / F1,
+  Diebold-Mariano p-value, +-1 sd band coverage; robustness by volatility regime (threshold = median trailing
+  volatility up to the cutoff), by calendar year and by four consecutive windows of the test period.
+* **Project outputs** (`Outputs/frozen_eval/`): `report.html` (standalone report with every table and chart),
+  `registration_accuracy.csv` / `registration_robustness.csv` / `registration_summary.md` (spreadsheet-ready), plus the raw
+  `metrics.csv`, `trading.csv`, `robustness.csv`. The e-mail keeps its shorter "Frozen-model check" section (rolling
+  chart, accuracy, direction, band coverage, trading rule); MAPE, F1, benchmarks and the robustness tables are in the
+  report only. The signal summary also reads its track record from `metrics.csv`.
 
 ## Signal summary (top of the e-mail, `forecast/signals.py`)
 For `signal_horizon` (1) trading day (the horizon where the frozen test shows the best records; skill fades quickly beyond it): BUY / SELL if a model's expected move exceeds `trade_band` x its 1-sd noise

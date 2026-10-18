@@ -30,7 +30,9 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from forecast import benchmarks as bm  # noqa: E402
 from forecast import evaluation as ev  # noqa: E402
+from forecast import frozen_report  # noqa: E402
 from forecast import reporting as rp  # noqa: E402
 from forecast.config import OUTPUT_DIR, Config  # noqa: E402
 from forecast.data import load_inputs, truncate_inputs  # noqa: E402
@@ -84,8 +86,14 @@ def main():
         ["target", "model", "horizon", "asof_date"])
     prices = {t: inputs.prices[t].dropna() for t in fc["target"].unique()}
     prices = {t: p[p > 0] for t, p in prices.items()}
+    plugin_models = rp.order_models(fc["model"].unique())            # production models only (charts use these)
+    origins_by_target = {t: sorted(fc[fc["target"] == t]["asof_date"].unique()) for t in prices}
+    bench = bm.benchmark_forecasts(prices, cutoff, origins_by_target, cfg.frozen_horizons)
+    fc = pd.concat([fc, bench], ignore_index=True).sort_values(["target", "model", "horizon", "asof_date"])
 
     metrics = ev.forecast_metrics(fc, prices)
+    robust = ev.robustness(fc, prices, cutoff)
+    robust.to_csv(OUT / "robustness.csv", index=False)
     trading, curves = ev.trading_metrics(fc, prices, cfg.cost_bps, cfg.trade_band)
     fc.to_csv(OUT / "forecasts.csv", index=False)
     metrics.to_csv(OUT / "metrics.csv", index=False)
@@ -110,7 +118,7 @@ def main():
 
     # ---- charts
     cmap = plt.get_cmap("tab10")
-    models_all = rp.order_models(fc["model"].unique())
+    models_all = plugin_models
     colour = {m: cmap(k % 10) for k, m in enumerate(models_all)}
     H, ZOOM = cfg.frozen_chart_horizon, cfg.frozen_zoom_days
     for t, p in prices.items():
@@ -180,7 +188,7 @@ def main():
         TH = cfg.frozen_trade_horizon
         fig, ax = plt.subplots(figsize=(10, 4.2))
         for (tt, m, h), c in curves.items():
-            if tt == t and h in (0, TH) and m != "RW":
+            if tt == t and h in (0, TH) and m != "RW" and m not in ("HistMean", "AR"):
                 if m != "Buy & hold" and trading[(trading["target"] == t) & (trading["model"] == m)
                                                  & (trading["horizon"] == TH)]["days_in_market"].max() == 0:
                     continue                                          # never trades: a flat line adds nothing
@@ -198,9 +206,10 @@ def main():
                "n_origins": len(origins), "fan_origin": str(fan_origin.date()), "cost_bps": cfg.cost_bps,
                "trade_band": cfg.trade_band, "trade_horizon_chart": cfg.frozen_trade_horizon,
                "chart_horizon": cfg.frozen_chart_horizon,
-               "models": models_all, "horizons": list(cfg.frozen_horizons), "trained_through": trained, "failed": failed,
+               "models": plugin_models, "benchmarks": ["HistMean", "AR"], "horizons": list(cfg.frozen_horizons), "trained_through": trained, "failed": failed,
                "seconds": round(time.time() - t0, 1)}
     (OUT / "summary.json").write_text(json.dumps(summary, indent=2))
+    frozen_report.write_outputs(cfg)                                 # report.html + registration tables
     print(f"[frozen] done in {time.time() - t0:.0f}s -> {OUT}")
     return 0
 

@@ -34,7 +34,7 @@ def build(report):
     warn = ""
     if report.get("failed"):
         warn = f"<p style='color:#b00'><b>Retraining failed for:</b> {', '.join(report['failed'])} (previous model kept).</p>"
-    html = (f"<html><body style='font-family:Arial,sans-serif;max-width:950px'><h2>Models retrained</h2>{warn}"
+    html = (f"<html><head>{rp.CSS}</head><body style='font-family:Arial,sans-serif;max-width:950px'><h2>Models retrained</h2>{warn}"
             f"{''.join(parts)}<hr><p style='font-size:12px;color:#555'>The daily forecast uses these models from the "
             f"next run onward. Hyper-parameters (LASSO penalty, number of PCA factors, regime model) were re-selected "
             f"on past data only. Models are retrained quarterly, or on demand from the GitHub Actions tab.</p></body></html>")
