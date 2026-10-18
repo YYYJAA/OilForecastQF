@@ -88,7 +88,7 @@ def main():
     prices = {t: p[p > 0] for t, p in prices.items()}
     plugin_models = rp.order_models(fc["model"].unique())            # production models only (charts use these)
     origins_by_target = {t: sorted(fc[fc["target"] == t]["asof_date"].unique()) for t in prices}
-    bench = bm.benchmark_forecasts(prices, cutoff, origins_by_target, cfg.frozen_horizons)
+    bench = bm.benchmark_forecasts(prices, cutoff, origins_by_target, cfg.frozen_horizons, cfg.series_start)
     fc = pd.concat([fc, bench], ignore_index=True).sort_values(["target", "model", "horizon", "asof_date"])
 
     metrics = ev.forecast_metrics(fc, prices)

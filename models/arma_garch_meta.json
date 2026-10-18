@@ -1,8 +1,8 @@
 {
   "plugin": "arma_garch",
   "version": "1",
-  "trained_at": "2026-10-12T13:57:43+00:00",
-  "train_end": "2026-10-09",
+  "trained_at": "2026-10-18T08:34:48+00:00",
+  "train_end": "2026-10-16",
   "arma_order": [
     0,
     2
@@ -14,8 +14,8 @@
   "garch_dist": "t",
   "series": {
     "brent_fut": {
-      "arma_params": "[-1.86196752e-02 -6.35045480e-04  5.92608837e+00]",
-      "garch_params": "[0.04693461 0.08241055 0.91309411 5.61848659]",
+      "arma_params": "[-1.86685248e-02 -3.53166264e-04  5.92357690e+00]",
+      "garch_params": "[0.04698444 0.08235148 0.91311794 5.61693313]",
       "garch_param_names": [
         "omega",
         "alpha[1]",
@@ -29,18 +29,18 @@
       ],
       "converged_arma": true,
       "converged_garch": true,
-      "n_obs": 4778,
+      "n_obs": 4783,
       "first_date": "2007-07-31",
-      "last_date": "2026-10-09",
-      "aic_arma": 22066.684086302303,
-      "aic_garch": 20040.66276224271,
-      "persistence": 0.9955046616002273,
-      "uncond_vol_daily_pct": 3.2312117121142805,
-      "nu": 5.61848659120435
+      "last_date": "2026-10-16",
+      "aic_arma": 22087.736778230428,
+      "aic_garch": 20061.529763425537,
+      "persistence": 0.9954694231438037,
+      "uncond_vol_daily_pct": 3.2203293796245056,
+      "nu": 5.616933132509334
     },
     "wti_fut": {
-      "arma_params": "[-0.01643723 -0.02749138  6.90361986]",
-      "garch_params": "[0.08199637 0.07920554 0.908096   7.66475561]",
+      "arma_params": "[-0.01605632 -0.02714659  6.90254549]",
+      "garch_params": "[0.0817958  0.07913366 0.90820435 7.6776495 ]",
       "garch_param_names": [
         "omega",
         "alpha[1]",
@@ -54,14 +54,14 @@
       ],
       "converged_arma": true,
       "converged_garch": true,
-      "n_obs": 6558,
+      "n_obs": 6563,
       "first_date": "2000-08-24",
-      "last_date": "2026-10-09",
-      "aic_arma": 31287.28918070082,
-      "aic_garch": 28731.09082363142,
-      "persistence": 0.9873015338077903,
-      "uncond_vol_daily_pct": 2.5410995791613833,
-      "nu": 7.664755607296993
+      "last_date": "2026-10-16",
+      "aic_arma": 31310.1204256886,
+      "aic_garch": 28754.38899662393,
+      "persistence": 0.9873380120029208,
+      "uncond_vol_daily_pct": 2.541643055434303,
+      "nu": 7.67764950208064
     }
   },
   "warnings": [],

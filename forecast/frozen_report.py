@@ -358,6 +358,32 @@ def _robust_compact(rob, t, models, horizons):
     return out
 
 
+FAMILIES = {"LASSO": ["LASSO_1se", "LASSO_RS"]}      # variants that are shown as one column when they behave the same
+
+
+def _merge_variants(mt, models):
+    """{kept model: [variants]} for variants whose results are indistinguishable from the kept model's
+    (RMSE ratio within 0.002 and direction within 3 points at every horizon)."""
+    merged = {}
+    for keep, variants in FAMILIES.items():
+        if keep not in models:
+            continue
+        a = mt[mt["model"] == keep].set_index("horizon")
+        same = []
+        for v in variants:
+            if v not in models:
+                continue
+            b = mt[mt["model"] == v].set_index("horizon")
+            hs = a.index.intersection(b.index)
+            d_r = (a.loc[hs, "rmse_ratio"] - b.loc[hs, "rmse_ratio"]).abs().max()
+            d_a = (a.loc[hs, "dir_acc"].fillna(0.5) - b.loc[hs, "dir_acc"].fillna(0.5)).abs().max()
+            if d_r <= 0.002 and d_a <= 0.03:
+                same.append(v)
+        if same:
+            merged[keep] = same
+    return merged
+
+
 def section(cfg):
     """E-mail section: returns (html, {cid: png_bytes}); empty when the evaluation has not been run."""
     sp = FOLDER / "summary.json"
@@ -370,10 +396,17 @@ def section(cfg):
     H = int(s.get("trade_horizon_chart", cfg.frozen_trade_horizon))
     CH = int(s.get("chart_horizon", cfg.frozen_chart_horizon))
     images, parts = {}, []
+    rp.OVERRIDES.clear()
     targets = [cfg.target] + [t for t in m["target"].unique() if t != cfg.target]
     for t in [x for x in targets if x in set(m["target"])]:
         mt, tt = m[m["target"] == t], tr[tr["target"] == t]
         models = [x for x in rp.order_models(mt["model"].unique()) if x != "RW"]
+        merged = _merge_variants(mt, models)
+        rp.OVERRIDES.clear()
+        for keep, same in merged.items():                       # one column instead of near-identical variants
+            rp.OVERRIDES[keep] = (rp.label(keep) + "<br><span style='font-weight:400;font-size:10.5px'>(+ "
+                                  + ", ".join(rp.label(v).replace("LASSO ", "") for v in same) + ")</span>")
+        models = [x for x in models if x not in {v for vs in merged.values() for v in vs}]
         trade_models = [x for x in models if x in set(tt["model"]) and x not in BENCH]
         cov_models = [x for x in ["RW", "ARMA-GARCH", "MS-AR", "MS-ARX"] if x in set(mt["model"])]
         block = f"<h3>{rp.target_label(t)}</h3>"
@@ -421,4 +454,5 @@ def section(cfg):
              f"validation; nothing after the cutoff was used to fit or choose. This is a deliberately stale test model, "
              f"not the production model above, so it measures skill plus ageing. Updated monthly "
              f"(last run {s['generated_at_utc'][:10]}).</p>")
+    rp.OVERRIDES.clear()
     return intro + "".join(parts), images

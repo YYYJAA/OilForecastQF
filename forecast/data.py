@@ -52,3 +52,15 @@ def truncate_inputs(inputs: Inputs, date) -> Inputs:
     return Inputs(prices=inputs.prices.loc[:d],
                   eia=inputs.eia.loc[:d] if len(inputs.eia) else inputs.eia,
                   weekly={k: (s.loc[:d], lag) for k, (s, lag) in inputs.weekly.items()})
+
+
+def target_inputs(inputs: Inputs, cfg: Config, target: str) -> Inputs:
+    """Inputs prepared for forecasting `target`: its own price column is cleaned (non-positive prices -> missing) and cut
+    to cfg.series_start[target]; every other column is left as it is."""
+    px = inputs.prices.copy()
+    s = px[target].where(px[target] > 0)
+    start = cfg.series_start.get(target)
+    if start:
+        s = s.where(s.index >= pd.Timestamp(start))
+    px[target] = s
+    return Inputs(prices=px, eia=inputs.eia, weekly=inputs.weekly)

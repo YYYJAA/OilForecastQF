@@ -85,19 +85,27 @@ def build(cfg):
         asof = cur["asof_date"].max()
         cur = cur[cur["asof_date"] == asof]
         p0 = float(cur["price_now"].iloc[0])
+        cur_tab, folded = rp.fold_no_change(cur)                 # models that forecast exactly "no change" go in that column
         tlog = rp.baseline_log(log[log["target"] == t], price)
+        tlog_tab = tlog[~tlog["model"].isin(folded)]
         cid = f"chart_{t}"
         images[cid] = rp.make_chart(price, cur, N_CHART_DAYS, rp.target_label(t))
         unc = rp.uncertainty_table(cur)
-        sc_html = rp.scorecard_html(rp.scorecard(tlog, np.log(price)))
+        sc = rp.scorecard(tlog, np.log(price))
+        if sc is not None:
+            sc = sc[~sc["model"].isin(folded)]
+        sc_html = rp.scorecard_html(sc)
+        fold_note = ("" if not folded else
+                     f"<p style='font-size:11.5px;color:#777;margin:4px 0 0'>{', '.join(rp.label(x) for x in folded)} keep no variables "
+                     f"today, so their forecast is exactly no change (see the No-change column); they are left out of the other tables below.</p>")
         sections.append(f"""<h2 style="margin-bottom:2px;border-top:2px solid #333;padding-top:10px">{rp.target_label(t)}
 <span style="font-weight:normal;font-size:14px;color:#555">({t}) as of {asof.date()}: <b>{p0:,.2f}</b> USD/bbl</span></h2>
 <h3>Forecasts from today's data</h3>
-<p style="font-size:11.5px;color:#777;margin:0 0 4px">Price (change vs no change). Grey = same as no change.</p>{rp.forecast_table(cur)}
+<p style="font-size:11.5px;color:#777;margin:0 0 4px">Price (change vs no change). Grey = same as no change.</p>{rp.forecast_table(cur_tab, folded)}{fold_note}
 <h3>Uncertainty: +-1 sd range of the price</h3>{unc}
 <h3>Last {N_CHART_DAYS} trading days and forecasts</h3><img src="cid:{cid}" style="max-width:100%">
 <h3>Last {N_TABLE_DAYS} days: actual vs the 1-day-ahead forecast made the day before</h3>
-{rp.last_days_table(tlog, price, N_TABLE_DAYS, horizon=1)}
+{rp.last_days_table(tlog_tab, price, N_TABLE_DAYS, horizon=1)}
 <p style="font-size:11px;color:#777">Cell = forecast made the previous trading day (actual / forecast - 1 in brackets).</p>
 <h3>Track record: RMSE vs no change (below 1.000 = better than no change)</h3>{sc_html}""")
         c = cur.pivot_table(index="horizon", columns="model", values="forecast_price").round(2)

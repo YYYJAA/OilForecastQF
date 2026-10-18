@@ -1,9 +1,9 @@
 {
-  "generated_at_utc": "2026-10-18T06:08:40+00:00",
+  "generated_at_utc": "2026-10-18T08:36:22+00:00",
   "cutoff": "2024-12-31",
   "first_origin": "2025-01-02",
-  "last_origin": "2026-10-12",
-  "n_origins": 447,
+  "last_origin": "2026-10-16",
+  "n_origins": 451,
   "fan_origin": "2026-07-01",
   "cost_bps": 5.0,
   "trade_band": 0.1,
@@ -41,5 +41,5 @@
     "msar": "2024-12-31"
   },
   "failed": [],
-  "seconds": 47.0
+  "seconds": 90.4
 }

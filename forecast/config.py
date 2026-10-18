@@ -25,6 +25,12 @@ class Config:
     weekly_stale_days: int = 21
     weekly_release_lag: int = 6       # weekly series enter 6 days after the period date
 
+    # series the LASSO-family and MS-AR plugins forecast (each gets its own panel in the e-mail)
+    targets: List[str] = field(default_factory=lambda: ["brent_fut", "wti_fut"])
+    # a target's prices before this date are not used: WTI settled at -37.63 on 2020-04-20, which would put a -60% "return"
+    # into the estimation windows. (Other series, e.g. WTI as a predictor of Brent, are untouched.)
+    series_start: dict = field(default_factory=lambda: {"wti_fut": "2020-06-01"})
+
     # ---- forecasting ----
     horizons: List[int] = field(default_factory=lambda: [1, 5, 10, 20, 40, 60])
     window: int = 1260                # rolling estimation window (trading days)

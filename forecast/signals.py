@@ -44,7 +44,7 @@ def _evidence():
     return pd.read_csv(f) if f.exists() else None
 
 
-def table(cur, target, h, band):
+def table(cur, target, h, band, folded=()):
     """Rows for every non-benchmark model at horizon h from today's forecasts `cur` (one target)."""
     ev = _evidence()
     out = []
@@ -59,9 +59,15 @@ def table(cur, target, h, band):
             if len(m):
                 hit, n, ratio = m["dir_acc"].iloc[0], float(m["n"].iloc[0]), m["rmse_ratio"].iloc[0]
         conf, p = confidence(hit, n, h, ratio)                    # a property of the model's record, not of today's call
-        out.append({"model": r.model, "signal": sig, "move": f, "z": z, "p_up": p_up, "hit": hit,
+        out.append({"model": r.model, "label": rp.label(r.model), "signal": sig, "move": f, "z": z, "p_up": p_up, "hit": hit,
                     "n_eff": n / h if n == n else np.nan, "ratio": ratio, "confidence": conf, "p": p})
     df = pd.DataFrame(out)
+    f = [m for m in folded if m in set(df["model"])] if len(df) else []
+    if len(f) >= 2:       # models that forecast exactly "no change" (e.g. LASSO variants keeping no variables): one row
+        df = df[~df["model"].isin(f)]
+        df = pd.concat([df, pd.DataFrame([{"model": "__folded__", "label": ", ".join(rp.label(x) for x in f) + " (keep no variables)",
+                                           "signal": "HOLD", "move": 0.0, "z": 0.0, "p_up": 0.5, "hit": np.nan, "n_eff": np.nan,
+                                           "ratio": np.nan, "confidence": "n/a", "p": np.nan}])], ignore_index=True)
     if len(df):
         df["_rank"] = df["confidence"].map(RANK).fillna(0)
         df["_p"] = df["p"].fillna(1.0)
@@ -91,7 +97,7 @@ def block(cfg, latest, target_names):
     for t in target_names:
         cur = latest[(latest["target"] == t)]
         cur = cur[cur["asof_date"] == cur["asof_date"].max()]
-        df = table(cur, t, h, band)
+        df = table(cur, t, h, band, rp.fold_no_change(cur)[1])
         if df.empty:
             continue
         label, nb, ns, nh, conf = consensus(df)
@@ -105,7 +111,7 @@ def block(cfg, latest, target_names):
             hit = "n/a" if not np.isfinite(r.hit) else f"{100 * r.hit:.0f}% (n={r.n_eff:.0f})"
             if np.isfinite(r.hit):
                 any_evidence = True
-            rows.append([c(rp.label(r.model)),
+            rows.append([c(r.label),
                          f"<b style='color:{COLOUR[r.signal]}'>{r.signal}</b>",
                          c(f"{100 * (np.exp(r.move) - 1):+.2f}%"),
                          c("n/a" if not np.isfinite(r.z) else f"{abs(r.z):.2f}"),

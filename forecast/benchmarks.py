@@ -11,12 +11,14 @@ import pandas as pd
 PMAX = 10
 
 
-def benchmark_forecasts(prices: dict, cutoff, origins_by_target: dict, horizons) -> pd.DataFrame:
+def benchmark_forecasts(prices: dict, cutoff, origins_by_target: dict, horizons, series_start=None) -> pd.DataFrame:
     rows = []
     cutoff = pd.Timestamp(cutoff)
     for t, p in prices.items():
         p = p.dropna()
         p = p[p > 0]
+        if series_start and series_start.get(t):
+            p = p[p.index >= pd.Timestamp(series_start[t])]      # same data start as the models (WTI: after April 2020)
         lp = np.log(p)
         r = lp.diff().fillna(0.0)
         lags = pd.DataFrame({j: r.shift(j) for j in range(PMAX)}).fillna(0.0)          # r_t, r_{t-1}, ...

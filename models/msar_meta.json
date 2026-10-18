@@ -2,61 +2,120 @@
   "plugin": "msar",
   "version": "1",
   "statsmodels": "0.15.0",
-  "trained_at": "2026-10-12T13:57:45+00:00",
-  "train_end": "2026-10-09",
+  "trained_at": "2026-10-18T08:34:49+00:00",
+  "train_end": "2026-10-16",
   "target": "brent_fut",
-  "models": {
-    "MS-AR": {
-      "family": "baseline",
-      "window": 1260,
-      "weight": 1.0,
-      "params": "[ 9.80186831e-01  7.20761863e-02  7.69641499e-02 -1.87385931e-01\n  3.04091087e+00  1.78153743e+01  1.63013527e-02]",
-      "scaler": null,
-      "fit_date": "2026-10-09",
-      "window_start": "2021-10-07",
-      "n_obs": 1260,
-      "attempts": [
-        {
-          "start": "cold",
-          "accepted": true,
-          "llf": -2795.537302520921,
-          "radius": 0.0002657341000191197
+  "series": {
+    "brent_fut": {
+      "models": {
+        "MS-AR": {
+          "family": "baseline",
+          "window": 1260,
+          "weight": 1.0,
+          "params": "[ 9.80836211e-01  7.13638444e-02  7.78349360e-02 -1.86691572e-01\n  3.08133241e+00  1.80001584e+01  1.59367544e-02]",
+          "scaler": null,
+          "fit_date": "2026-10-16",
+          "window_start": "2021-10-14",
+          "n_obs": 1260,
+          "attempts": [
+            {
+              "start": "cold",
+              "accepted": true,
+              "llf": -2797.737584441264,
+              "radius": 0.0002539241647410305
+            },
+            {
+              "start": "cold",
+              "accepted": true,
+              "llf": -2797.737584435709,
+              "radius": 0.00025398014133067894
+            }
+          ]
         },
-        {
-          "start": "cold",
-          "accepted": true,
-          "llf": -2795.537302676769,
-          "radius": 0.0002658882482528678
+        "MS-ARX": {
+          "family": "msarx",
+          "window": 756,
+          "weight": 0.25,
+          "params": "[ 9.85873572e-01  5.38942714e-02  2.55588563e-02  3.07918251e-01\n  1.33798700e-04  3.90558786e-02  2.70077629e+00  1.87825941e+01\n -1.22095751e-01]",
+          "scaler": {
+            "means": "[ 0.01359788 -0.00589678  4.31199732]",
+            "scales": "[2.14625083 0.4023061  2.02339873]"
+          },
+          "fit_date": "2026-10-16",
+          "window_start": "2023-10-17",
+          "n_obs": 756,
+          "attempts": [
+            {
+              "start": "cold",
+              "accepted": true,
+              "llf": -1639.550649444058
+            },
+            {
+              "start": "cold",
+              "accepted": true,
+              "llf": -1639.5506506027336
+            }
+          ]
         }
-      ]
-    },
-    "MS-ARX": {
-      "family": "msarx",
-      "window": 756,
-      "weight": 0.25,
-      "params": "[ 9.85297095e-01  5.44210839e-02  2.04254452e-02  1.94079921e-01\n  2.12755289e-02  1.48879225e-02  2.73169762e+00  1.88308130e+01\n -8.59565915e-02]",
-      "scaler": {
-        "means": "[ 0.01150793 -0.00495661  4.25355816]",
-        "scales": "[2.15528305 0.40207844 1.943487  ]"
       },
-      "fit_date": "2026-10-09",
-      "window_start": "2023-10-10",
-      "n_obs": 756,
-      "attempts": [
-        {
-          "start": "cold",
-          "accepted": true,
-          "llf": -1643.5006439953943
+      "train_end": "2026-10-16"
+    },
+    "wti_fut": {
+      "models": {
+        "MS-AR": {
+          "family": "baseline",
+          "window": 1260,
+          "weight": 1.0,
+          "params": "[ 0.99069211  0.04111087  0.04184481 -0.08239787  3.90682414 19.78949622\n  0.02237367]",
+          "scaler": null,
+          "fit_date": "2026-10-16",
+          "window_start": "2021-10-13",
+          "n_obs": 1260,
+          "attempts": [
+            {
+              "start": "cold",
+              "accepted": true,
+              "llf": -2880.701083321529,
+              "radius": 0.0005005899860321689
+            },
+            {
+              "start": "cold",
+              "accepted": true,
+              "llf": -2880.701082703986,
+              "radius": 0.0005005811263681219
+            }
+          ]
         },
-        {
-          "start": "cold",
-          "accepted": true,
-          "llf": -1643.5006438997516
+        "MS-ARX": {
+          "family": "msarx",
+          "window": 756,
+          "weight": 0.25,
+          "params": "[ 9.92924480e-01  3.42256528e-02  2.49510074e-02 -2.34024323e-01\n  1.56758590e-03 -2.00433643e-01  3.43977516e+00  2.09136864e+01\n  5.96463052e-02]",
+          "scaler": {
+            "means": "[ 0.0263492  -0.00579752 -4.31058197]",
+            "scales": "[2.20552931 0.4023168  2.0238018 ]"
+          },
+          "fit_date": "2026-10-16",
+          "window_start": "2023-10-16",
+          "n_obs": 756,
+          "attempts": [
+            {
+              "start": "cold",
+              "accepted": true,
+              "llf": -1685.7402320261963
+            },
+            {
+              "start": "cold",
+              "accepted": true,
+              "llf": -1685.740232063846
+            }
+          ]
         }
-      ]
+      },
+      "train_end": "2026-10-16"
     }
   },
   "refit_every": 63,
-  "note": "specification (window, mean weight) selected by the notebook on 2022-2023 validation; parameters are re-estimated at each retrain",
+  "note": "specification (window, mean weight) selected by the notebook on 2022-2023 validation (Brent); parameters are re-estimated at each retrain",
   "hmm_fit_date": null
 }

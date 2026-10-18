@@ -34,8 +34,23 @@ def order_models(models):
     return known + sorted(m for m in models if m not in MODEL_ORDER)
 
 
+OVERRIDES = {}                      # temporary display names (e.g. a merged column), set by the caller
+
+
 def label(m):
-    return LABELS.get(m, m)
+    return OVERRIDES.get(m) or LABELS.get(m, m)
+
+
+def fold_no_change(cur, tol=1e-12):
+    """Models whose forecast is EXACTLY no change at every horizon today (the LASSO variants when they keep no variables).
+    Returns (cur without them, their names in display order). They are shown inside the No-change column instead."""
+    names = []
+    for m in order_models(cur["model"].unique()):
+        if m == "RW":
+            continue
+        if cur[cur["model"] == m]["forecast_return"].abs().max() < tol:
+            names.append(m)
+    return cur[~cur["model"].isin(names)], names
 
 
 def target_label(t):
@@ -93,7 +108,7 @@ def baseline_log(log, price):
 
 
 # --------------------------------------------------------------------------- tables
-def forecast_table(cur):
+def forecast_table(cur, folded=()):
     models = order_models(cur["model"].unique())
     rows = []
     for h, g in cur.groupby("horizon"):
@@ -108,7 +123,10 @@ def forecast_table(cur):
             txt = f"{r['forecast_price']:.2f} ({_pct(d)})" if m != "RW" else f"{r['forecast_price']:.2f}"
             cells.append(_grey(txt) if (m != "RW" and abs(d) < SAME) else txt)
         rows.append(cells)
-    return _html_table(["Horizon", "Target date"] + [label(m) for m in models], rows)
+    head = [label(m) if not (m == "RW" and folded)
+            else label(m) + "<br><span style='font-weight:400;font-size:10.5px;color:#777'>= " + ", ".join(label(x) for x in folded) + "</span>"
+            for m in models]
+    return _html_table(["Horizon", "Target date"] + head, rows)
 
 
 def uncertainty_table(cur):

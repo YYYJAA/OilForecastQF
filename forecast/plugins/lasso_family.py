@@ -3,12 +3,17 @@
 This is the team's lasso.ipynb model set, packaged for scripted training and daily prediction.
 Regime probabilities come from the real-time Gaussian HMM; between quarterly retrains the HMM
 parameters are fixed and the filter is simply continued with each new day.
+
+The set is fitted separately for every series in cfg.targets (Brent and WTI futures). The notebook's settings were chosen
+on Brent; the same settings are applied to WTI. Artifact layout: art["by_target"][series] holds what used to be the
+whole artifact (older single-series artifacts are still read as Brent-only).
 """
 from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
 
+from ..data import target_inputs
 from ..features import add_regime_features, build_features, train_rows
 from ..models import FITTERS
 from ..regime import continue_filter, hmm_inputs, run_regime_id
@@ -16,13 +21,18 @@ from ..registry import ForecastPlugin, register
 
 MODELS = ["RW", "LASSO", "LASSO_1se", "PCA_reg", "TPCA", "LASSO_RS"]
 COMBO = "Combo_EW"
-VERSION = "1"
+VERSION = "2"
 
 
-def _panel(inputs, cfg):
-    X, Y, logp = build_features(inputs.prices, inputs.eia, inputs.weekly, cfg.target, cfg)
+def _panel(inputs, cfg, target):
+    X, Y, logp = build_features(inputs.prices, inputs.eia, inputs.weekly, target, cfg)
     P, hmm_log = run_regime_id(logp, cfg)
     return add_regime_features(X, P, cfg), Y, logp, P, hmm_log
+
+
+def _series(art, cfg):
+    """{series: single-series artifact}; an older artifact (one series, no by_target) is read as cfg.target."""
+    return art["by_target"] if "by_target" in art else {art.get("target", cfg.target): art}
 
 
 def _fit_at(X, Y, i, cfg):
@@ -53,8 +63,9 @@ def _predict_row(fits, x, cfg, asof):
 class LassoFamily(ForecastPlugin):
     name = "lasso_family"
 
-    def train(self, inputs, cfg):
-        X, Y, logp, P, hmm_log = _panel(inputs, cfg)
+    # ------------------------------------------------------------------ one series
+    def _train_one(self, inputs, cfg, target):
+        X, Y, logp, P, hmm_log = _panel(inputs, cfg, target)
         i = len(X) - 1
         fits = _fit_at(X, Y, i, cfg)
         last = hmm_log[-1]
@@ -73,15 +84,15 @@ class LassoFamily(ForecastPlugin):
             "plugin": self.name, "version": VERSION,
             "trained_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "train_end": str(X.index[i].date()), "n_obs_window": cfg.window,
-            "target": cfg.target, "cfg": cfg.to_dict(), "fits": fits, "windows": windows,
+            "target": target, "cfg": cfg.to_dict(), "fits": fits, "windows": windows,
             "data_start": str(X.index[0].date()),
             "hmm": {"date": X.index[i], "alpha": P.iloc[i].to_numpy(dtype=float),
                     "A": last["A"], "mu": last["mu"], "var": last["var"], "fit_date": str(last["date"].date())},
             "meta": meta, "top_coefficients": top,
         }
 
-    def predict(self, art, inputs, cfg):
-        X, Y, logp = build_features(inputs.prices, inputs.eia, inputs.weekly, cfg.target, cfg)
+    def _predict_one(self, art, inputs, cfg, target):
+        X, Y, logp = build_features(inputs.prices, inputs.eia, inputs.weekly, target, cfg)
         hm = art["hmm"]
         H = hmm_inputs(logp, cfg.hmm_inputs)
         P = pd.DataFrame(np.nan, index=X.index, columns=[f"state{k}" for k in range(len(hm["alpha"]))])
@@ -97,12 +108,13 @@ class LassoFamily(ForecastPlugin):
         asof = X.index[-1]
         df = pd.DataFrame(_predict_row(art["fits"], X.iloc[-1], cfg, asof))
         df["regime_p"] = float(X["regime_p"].iloc[-1])
+        df["target"] = target
         return df
 
-    def rolling_predict(self, art, inputs, cfg, origins):
+    def _rolling_one(self, art, inputs, cfg, target, origins):
         """Fixed parameters at every origin. Features are causal (checked by the look-ahead test), so they are built
         once; the regime filter is continued once through all days after the training end."""
-        X, Y, logp = build_features(inputs.prices, inputs.eia, inputs.weekly, cfg.target, cfg)
+        X, Y, logp = build_features(inputs.prices, inputs.eia, inputs.weekly, target, cfg)
         hm = art["hmm"]
         H = hmm_inputs(logp, cfg.hmm_inputs)
         P = pd.DataFrame(np.nan, index=X.index, columns=[f"state{k}" for k in range(len(hm["alpha"]))])
@@ -121,11 +133,12 @@ class LassoFamily(ForecastPlugin):
                 r = _predict_row(art["fits"], X.loc[d], cfg, d)
                 for x in r:
                     x["regime_p"] = float(X.loc[d, "regime_p"])
+                    x["target"] = target
                 rows += r
         return pd.DataFrame(rows)
 
-    def backtest(self, inputs, cfg, n_days, refit_every=5):
-        X, Y, logp, P, hmm_log = _panel(inputs, cfg)
+    def _backtest_one(self, inputs, cfg, target, n_days, refit_every):
+        X, Y, logp, P, hmm_log = _panel(inputs, cfg, target)
         last = len(X) - 1
         rows, fits = [], None
         for k, i in enumerate(range(last - n_days + 1, last + 1)):
@@ -134,11 +147,44 @@ class LassoFamily(ForecastPlugin):
             rows += _predict_row(fits, X.iloc[i], cfg, X.index[i])
         df = pd.DataFrame(rows)
         df["regime_p"] = df["asof_date"].map(X["regime_p"])
+        df["target"] = target
         return df
 
+    # ------------------------------------------------------------------ all series (public interface)
+    def train(self, inputs, cfg):
+        by = {t: self._train_one(target_inputs(inputs, cfg, t), cfg, t) for t in cfg.targets if t in inputs.prices.columns}
+        if not by:
+            raise RuntimeError("no target series available for the LASSO family")
+        first = by[cfg.target] if cfg.target in by else next(iter(by.values()))
+        return {"plugin": self.name, "version": VERSION, "trained_at": first["trained_at"],
+                "train_end": max(a["train_end"] for a in by.values()), "target": cfg.target,
+                "targets": list(by), "by_target": by}
+
+    def predict(self, art, inputs, cfg):
+        parts = [self._predict_one(a, target_inputs(inputs, cfg, t), cfg, t) for t, a in _series(art, cfg).items()]
+        return pd.concat(parts, ignore_index=True)
+
+    def rolling_predict(self, art, inputs, cfg, origins):
+        parts = [self._rolling_one(a, target_inputs(inputs, cfg, t), cfg, t, origins) for t, a in _series(art, cfg).items()]
+        return pd.concat(parts, ignore_index=True)
+
+    def backtest(self, inputs, cfg, n_days, refit_every=5):
+        parts = [self._backtest_one(target_inputs(inputs, cfg, t), cfg, t, n_days, refit_every)
+                 for t in cfg.targets if t in inputs.prices.columns]
+        return pd.concat(parts, ignore_index=True)
 
     # ------------------------------------------------------------------ retrain report
     def describe_change(self, old, new, inputs, cfg):
+        head, tables = [], []
+        olds = _series(old, cfg) if old is not None else {}
+        for t, nt in _series(new, cfg).items():
+            h_, t_ = self._describe_one(olds.get(t), nt, target_inputs(inputs, cfg, t), cfg, t)
+            label = {"brent_fut": "Brent", "wti_fut": "WTI"}.get(t, t)
+            head += [f"[{label}] {x}" for x in h_]
+            tables += [{**tb, "title": f"[{label}] {tb['title']}"} for tb in t_]
+        return {"headline": head, "tables": tables}
+
+    def _describe_one(self, old, new, inputs, cfg, target):
         def fmt(x, d=4):
             return "n/a" if x is None else f"{x:.{d}g}"
         head, tables = [], []
@@ -192,10 +238,10 @@ class LassoFamily(ForecastPlugin):
         # forecasts: old model vs new model on the same (latest) data
         if old is not None:
             try:
-                a, b = self.predict(old, inputs, cfg), self.predict(new, inputs, cfg)
+                a, b = self._predict_one(old, inputs, cfg, target), self._predict_one(new, inputs, cfg, target)
                 m = a.merge(b, on=["model", "horizon"], suffixes=("_old", "_new"))
                 m = m[m["model"] != "RW"]            # the no-change forecast cannot change
-                px = float(inputs.prices[cfg.target].dropna().iloc[-1])
+                px = float(inputs.prices[target].dropna().iloc[-1])
                 m["price_old"], m["price_new"] = px * np.exp(m["forecast_return_old"]), px * np.exp(m["forecast_return_new"])
                 fr = [[f"+{int(r.horizon)}d", r.model, f"{r.price_old:.2f}", f"{r.price_new:.2f}",
                        f"{100 * (r.price_new / r.price_old - 1):+.2f}%"] for r in m.sort_values(["horizon", "model"]).itertuples()]
@@ -220,7 +266,7 @@ class LassoFamily(ForecastPlugin):
                                  f"{(f'{ov[j]:.0f}% -> ' if ov is not None else '')}{nv[j]:.0f}%",
                                  f"{(f'{os2[j]:.3f} -> ' if os2 is not None else '')}{ns_[j]:.3f}"] for j in range(k)]
                                 + [["P(turbulent) today", "", f"{(f'{op:.2f} -> ' if op is not None else '')}{np_:.2f}"]]})
-        return {"headline": head, "tables": tables}
+        return head, tables
 
 
 register(LassoFamily())

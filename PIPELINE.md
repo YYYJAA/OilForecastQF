@@ -41,9 +41,9 @@ equal-weight combination.
 
 | Plugin | Models | Series | Notes |
 |---|---|---|---|
-| `lasso_family` | No change, LASSO, LASSO 1-SE, PCA, targeted PCA, regime LASSO, equal-weight combo | `cfg.target` (Brent) | from `lasso.ipynb`; HMM regime features |
+| `lasso_family` | No change, LASSO, LASSO 1-SE, PCA, targeted PCA, regime LASSO, equal-weight combo | Brent and WTI futures | from `lasso.ipynb`; HMM regime features; fitted separately per series |
 | `arma_garch` | ARMA-GARCH (MA(2) mean, GARCH(1,1)-t) | Brent and WTI futures | from `gp_arma_garch.ipynb`; forecasts about no change, its value is the volatility band (all horizons) |
-| `msar` | MS-AR, MS-ARX (2-regime Markov-switching AR; MS-ARX adds lagged WTI change, DXY return, Brent-WTI spread; forecast scaled by 0.25) | Brent futures | from `msar.ipynb`; needs statsmodels >= 0.15; band = simulated sd |
+| `msar` | MS-AR, MS-ARX (2-regime Markov-switching AR; MS-ARX adds the other benchmark's lagged price change, DXY return and Brent-WTI spread; forecast scaled by 0.25) | Brent and WTI futures | from `msar.ipynb`; needs statsmodels >= 0.15; band = simulated sd |
 
 ## MS-AR research notebook
 
@@ -99,6 +99,18 @@ otherwise NEUTRAL.
 * This is a deliberately stale model (skill plus ageing). It is not the production model.
 * Caveat for the report: window / weight choices come from the notebooks' own validation (all before 2025), but some
   design decisions were made after seeing later data, so the test is clean for estimation but not pristine.
+
+### Brent and WTI
+`cfg.targets` (default Brent and WTI futures) lists the series the LASSO-family and MS-AR plugins forecast; ARMA-GARCH
+uses `cfg.arma_garch_targets`. Every model has its own fit per series and the e-mail shows one panel per series.
+* The notebooks' settings (LASSO penalties are re-picked by cross-validation, but the window of 1260 days, the MS-AR
+  window and the 0.25 mean weight, the HMM and the feature set) were chosen on **Brent**. They are applied to WTI
+  unchanged; they have not been validated for WTI.
+* WTI settled at -37.63 on 2020-04-20, which would put a -60% "return" into estimation windows. WTI's own price series is
+  therefore used only from `cfg.series_start["wti_fut"]` = 2020-06-01 (about 6 years; shorter windows are accepted down
+  to 80% of the nominal window). WTI as a *predictor* of Brent is unaffected. The historical-mean and AR benchmarks use the
+  same start.
+* For MS-ARX, "the other benchmark" is WTI when forecasting Brent and Brent when forecasting WTI.
 
 ## How models share tables and charts
 * All models report, for one target series, the expected log return over *h* trading days and a 1-sd
