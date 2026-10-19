@@ -66,7 +66,7 @@ def render(target):
     else:
         trade_models = [m for m in models if m != "RW"]
         a, b, c, d = st.columns([2, 1, 1, 1])
-        pick = a.multiselect("Models", trade_models, default=[m for m in trade_models if m in ("PCA_reg", "TPCA", "Combo_EW", "MS-AR", "MS-ARX")],
+        pick = a.multiselect("Models", trade_models, default=[m for m in trade_models if m in ("LASSO", "XGB", "MS-AR", "MS-ARX")],
                              format_func=D.label, key=f"eqm_{target}")
         eh = b.selectbox("Horizon (days)", sorted(h for h in eq["horizon"].unique() if h > 0), index=2, key=f"eqh_{target}")
         cost = c.slider("Cost (bp per trade)", 0.0, 25.0, 5.0, 0.5, key=f"eqc_{target}")

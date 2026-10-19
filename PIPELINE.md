@@ -41,7 +41,8 @@ equal-weight combination.
 
 | Plugin | Models | Series | Notes |
 |---|---|---|---|
-| `lasso_family` | No change, LASSO, LASSO 1-SE, PCA, targeted PCA, regime LASSO, equal-weight combo | Brent and WTI futures | from `lasso.ipynb`; HMM regime features; fitted separately per series |
+| `lasso_regime` | No change, regime-dependent LASSO (shrunk by half; calm / turbulent interactions) | Brent and WTI futures | from `lasson.ipynb`; replaces the earlier `lasso_family`; band = standardised-error spread x today's volatility |
+| `xgboost` | XGBoost (depth-2 trees, PCA variable selection, shrunk by half) | Brent and WTI futures | from `xgbn.ipynb`; needs `xgboost`; same band construction |
 | `arma_garch` | ARMA-GARCH (MA(2) mean, GARCH(1,1)-t) | Brent and WTI futures | from `gp_arma_garch.ipynb`; forecasts about no change, its value is the volatility band (all horizons) |
 | `msar` | MS-AR, MS-ARX (2-regime Markov-switching AR; MS-ARX adds the other benchmark's lagged price change, DXY return and Brent-WTI spread; forecast scaled by 0.25) | Brent and WTI futures | from `msar.ipynb`; needs statsmodels >= 0.15; band = simulated sd |
 
@@ -160,6 +161,6 @@ first visit shows a "wake up" button.
 Extra files for the app, written by `scripts/frozen_eval.py`: `Outputs/frozen_eval/equity_curves.csv`, `rolling_forecasts.csv`.
 
 ## Known limits
-* The `lasso_family` target is `brent_fut`, an unadjusted continuous front-month futures series (contract rolls appear as jumps).
+* Every plugin's target is an unadjusted continuous front-month futures series (contract rolls appear as jumps).
 * EIA's futures-contract files stop in April 2024, so the curve-slope feature is unavailable.
 * Weekly crude stocks come from EIA (the FRED series is no longer served).

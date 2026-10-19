@@ -86,7 +86,8 @@ def build(cfg):
         cur = cur[cur["asof_date"] == asof]
         p0 = float(cur["price_now"].iloc[0])
         cur_tab, folded = rp.fold_no_change(cur)                 # models that forecast exactly "no change" go in that column
-        tlog = rp.baseline_log(log[log["target"] == t], price)
+        live_models = set(cur["model"])                           # models that produced today's forecast; retired ones stay in the log only
+        tlog = rp.baseline_log(log[(log["target"] == t) & log["model"].isin(live_models)], price)
         tlog_tab = tlog[~tlog["model"].isin(folded)]
         cid = f"chart_{t}"
         images[cid] = rp.make_chart(price, cur, N_CHART_DAYS, rp.target_label(t))
@@ -112,8 +113,8 @@ def build(cfg):
         plain_parts.append(f"{t} as of {asof.date()}: {p0:,.2f}\n{c.to_string()}")
         if t == cfg.target:
             hmax = int(cur["horizon"].max())
-            combo = cur[(cur["model"] == "Combo_EW") & (cur["horizon"] == hmax)]
-            headline = [f"{t} {p0:,.2f}"] + ([f"Combo +{hmax}d {combo['forecast_price'].iloc[0]:,.1f}"] if len(combo) else [])
+            xg = cur[(cur["model"] == "XGB") & (cur["horizon"] == hmax)]
+            headline = [f"{t} {p0:,.2f}"] + ([f"XGBoost +{hmax}d {xg['forecast_price'].iloc[0]:,.1f}"] if len(xg) else [])
             asof_main = asof
 
     notes = [f"Forecasts are expected log-returns turned into prices. \"No change\" is the random-walk benchmark; "

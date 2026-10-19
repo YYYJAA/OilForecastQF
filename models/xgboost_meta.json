@@ -1,0 +1,75 @@
+{
+  "plugin": "xgboost",
+  "version": "1",
+  "trained_at": "2026-10-19T14:08:57+00:00",
+  "train_end": "2026-10-18",
+  "target": "brent_fut",
+  "targets": [
+    "brent_fut",
+    "wti_fut"
+  ],
+  "by_target": {
+    "brent_fut": {
+      "window_start": "2021-10-14",
+      "n_obs": 1260,
+      "train_end": "2026-10-18",
+      "variables_kept": [
+        "brent_gap_ma50",
+        "usdnok_ret20",
+        "ovx_z",
+        "crack_z",
+        "natgas_ret20",
+        "crack_d20",
+        "brent_ret1",
+        "rv_ratio"
+      ],
+      "trees": {
+        "1": 123,
+        "5": 1,
+        "10": 1,
+        "20": 1,
+        "40": 1,
+        "60": 1
+      },
+      "top_by_gain": [
+        "ovx_z",
+        "crack_d20",
+        "brent_gap_ma50",
+        "rv_ratio",
+        "crack_z"
+      ]
+    },
+    "wti_fut": {
+      "window_start": "2021-10-13",
+      "n_obs": 1260,
+      "train_end": "2026-10-18",
+      "variables_kept": [
+        "wti_gap_ma50",
+        "usdnok_ret20",
+        "ovx_z",
+        "gold_ret20",
+        "t10y3m_d60",
+        "breakeven_d20",
+        "wti_ret1",
+        "rv_ratio"
+      ],
+      "trees": {
+        "1": 4,
+        "5": 1,
+        "10": 5,
+        "20": 1,
+        "40": 1,
+        "60": 1
+      },
+      "top_by_gain": [
+        "ovx_z",
+        "t10y3m_d60",
+        "wti_gap_ma50",
+        "usdnok_ret20",
+        "rv_ratio"
+      ]
+    }
+  },
+  "errors": {},
+  "hmm_fit_date": null
+}

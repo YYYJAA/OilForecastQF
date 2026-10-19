@@ -1,0 +1,139 @@
+{
+  "generated_at_utc": "2026-10-19T14:08:57+00:00",
+  "reports": [
+    {
+      "plugin": "lasso_regime",
+      "trained_at": "2026-10-19T14:08:56+00:00",
+      "train_end": "2026-10-18",
+      "previous_train_end": null,
+      "previous_trained_at": null,
+      "seconds": 1.4,
+      "headline": [
+        "[Brent] New training data run through 2026-10-18 (first training).",
+        "[Brent] Estimation window: 2021-10-14 to 2026-10-18 (1260 trading days). Regimes: calm volatility 29% a year, turbulent 67%; the market is currently calm.",
+        "[Brent] Terms the LASSO keeps (of 49) by horizon: 1d: 1, 5d: 1, 10d: 1, 20d: 1, 40d: 1, 60d: 0.",
+        "[WTI] New training data run through 2026-10-18 (first training).",
+        "[WTI] Estimation window: 2021-10-13 to 2026-10-18 (1260 trading days). Regimes: calm volatility 32% a year, turbulent 70%; the market is currently calm.",
+        "[WTI] Terms the LASSO keeps (of 49) by horizon: 1d: 1, 5d: 1, 10d: 1, 20d: 0, 40d: 0, 60d: 1."
+      ],
+      "tables": [
+        {
+          "title": "[Brent] Largest terms in the 20-day LASSO (standardised effect)",
+          "header": [
+            "Predictor",
+            "Calm market",
+            "Turbulent market"
+          ],
+          "rows": [
+            [
+              "brent_ret60",
+              "-0.000",
+              "-0.000"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "plugin": "xgboost",
+      "trained_at": "2026-10-19T14:08:57+00:00",
+      "train_end": "2026-10-18",
+      "previous_train_end": null,
+      "previous_trained_at": null,
+      "seconds": 0.5,
+      "headline": [
+        "[Brent] New training data run through 2026-10-18 (first training).",
+        "[Brent] Estimation window: 2021-10-14 to 2026-10-18 (1260 trading days). PCA keeps 8 of 24 variables.",
+        "[Brent] Trees kept by early stopping: 1d: 123, 5d: 1, 10d: 1, 20d: 1, 40d: 1, 60d: 1.",
+        "[WTI] New training data run through 2026-10-18 (first training).",
+        "[WTI] Estimation window: 2021-10-13 to 2026-10-18 (1260 trading days). PCA keeps 8 of 24 variables.",
+        "[WTI] Trees kept by early stopping: 1d: 4, 5d: 1, 10d: 5, 20d: 1, 40d: 1, 60d: 1."
+      ],
+      "tables": [
+        {
+          "title": "[Brent] Variables kept by PCA selection and the most-used ones",
+          "header": [
+            "Variable kept",
+            "Among the top 5 by gain"
+          ],
+          "rows": [
+            [
+              "brent_gap_ma50",
+              "yes"
+            ],
+            [
+              "usdnok_ret20",
+              ""
+            ],
+            [
+              "ovx_z",
+              "yes"
+            ],
+            [
+              "crack_z",
+              "yes"
+            ],
+            [
+              "natgas_ret20",
+              ""
+            ],
+            [
+              "crack_d20",
+              "yes"
+            ],
+            [
+              "brent_ret1",
+              ""
+            ],
+            [
+              "rv_ratio",
+              "yes"
+            ]
+          ]
+        },
+        {
+          "title": "[WTI] Variables kept by PCA selection and the most-used ones",
+          "header": [
+            "Variable kept",
+            "Among the top 5 by gain"
+          ],
+          "rows": [
+            [
+              "wti_gap_ma50",
+              "yes"
+            ],
+            [
+              "usdnok_ret20",
+              "yes"
+            ],
+            [
+              "ovx_z",
+              "yes"
+            ],
+            [
+              "gold_ret20",
+              ""
+            ],
+            [
+              "t10y3m_d60",
+              "yes"
+            ],
+            [
+              "breakeven_d20",
+              ""
+            ],
+            [
+              "wti_ret1",
+              ""
+            ],
+            [
+              "rv_ratio",
+              "yes"
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "failed": []
+}

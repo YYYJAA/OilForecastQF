@@ -1,0 +1,63 @@
+{
+  "plugin": "lasso_regime",
+  "version": "1",
+  "trained_at": "2026-10-19T14:08:56+00:00",
+  "train_end": "2026-10-18",
+  "target": "brent_fut",
+  "targets": [
+    "brent_fut",
+    "wti_fut"
+  ],
+  "by_target": {
+    "brent_fut": {
+      "window_start": "2021-10-14",
+      "n_obs": 1260,
+      "train_end": "2026-10-18",
+      "vol_calm_ann_pct": 29.1,
+      "vol_turb_ann_pct": 66.8,
+      "regime_now": "calm",
+      "terms_kept": {
+        "1": 1,
+        "5": 1,
+        "10": 1,
+        "20": 1,
+        "40": 1,
+        "60": 0
+      },
+      "penalty": {
+        "1": 0.17787,
+        "5": 0.87731,
+        "10": 1.42138,
+        "20": 1.89973,
+        "40": 3.29253,
+        "60": 4.9578
+      }
+    },
+    "wti_fut": {
+      "window_start": "2021-10-13",
+      "n_obs": 1260,
+      "train_end": "2026-10-18",
+      "vol_calm_ann_pct": 31.6,
+      "vol_turb_ann_pct": 69.8,
+      "regime_now": "calm",
+      "terms_kept": {
+        "1": 1,
+        "5": 1,
+        "10": 1,
+        "20": 0,
+        "40": 0,
+        "60": 1
+      },
+      "penalty": {
+        "1": 0.25053,
+        "5": 0.8731,
+        "10": 1.46141,
+        "20": 2.29496,
+        "40": 4.14465,
+        "60": 5.02585
+      }
+    }
+  },
+  "errors": {},
+  "hmm_fit_date": null
+}

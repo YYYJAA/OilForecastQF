@@ -7,7 +7,7 @@ import streamlit as st
 
 from . import data as D
 
-COLORS = {"RW": "#9aa5b1", "LASSO": "#56b4e9", "LASSO_1se": "#2a7fc1", "PCA_reg": "#e69f00", "TPCA": "#d55e00",
+COLORS = {"RW": "#9aa5b1", "LASSO": "#56b4e9", "XGB": "#2fc79a", "LASSO_1se": "#2a7fc1", "PCA_reg": "#e69f00", "TPCA": "#d55e00",
           "LASSO_RS": "#cc79a7", "Combo_EW": "#2fc79a", "ARMA-GARCH": "#f0e442", "MS-AR": "#a78bfa", "MS-ARX": "#ff7b7b",
           "HistMean": "#7d8590", "AR": "#b0b8c1", "Buy & hold": "#ffffff"}
 SIG = {"BUY": "#2fc79a", "SELL": "#ff6b6b", "HOLD": "#8b98a9", "LEAN BUY": "#2fc79a", "LEAN SELL": "#ff6b6b", "NEUTRAL": "#8b98a9"}

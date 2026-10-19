@@ -18,10 +18,15 @@ st.markdown("Models are retrained **once a quarter**; in between they are only r
 ms = D.meta()
 st.subheader("The models")
 CARDS = {
-    "lasso_family": ("LASSO family (LASSO, LASSO 1-SE, regime LASSO, PCA, targeted PCA, equal-weight combination)",
-                     "Regress future returns on lagged returns, volatility, term structure, macro and calendar variables, with a hidden "
-                     "volatility-regime probability. LASSO shrinks useless predictors to zero; for oil it usually keeps none, which means "
-                     "'no change'. The PCA variants compress the predictors into a few factors."),
+    "lasso_regime": ("Regime LASSO",
+                     "A LASSO regression of the future return on about 20 market predictors (momentum, volatility, spreads, other "
+                     "markets, macro), where every predictor can have a different effect in calm and turbulent markets. A two-state "
+                     "Markov-switching model labels each day calm or turbulent. The penalty shrinks useless terms to zero, and the final "
+                     "forecast is halved (an equal-weight mix with 'no change'). Often it keeps almost nothing, which means 'no change'."),
+    "xgboost": ("XGBoost",
+                "Shallow gradient-boosted trees on the same predictors, cut down by PCA to one representative variable per independent "
+                "direction. Slow learning and strong penalties keep it from overfitting, and the forecast is halved like the LASSO. "
+                "Both models are retrained quarterly and give an interval from their own past errors."),
     "arma_garch": ("ARMA-GARCH", "A small ARMA for the mean and a GARCH(1,1) with fat tails for the changing volatility. Its value is the "
                                  "uncertainty band: the mean is close to zero."),
     "msar": ("MS-AR / MS-ARX", "Markov-switching autoregression: returns follow a calm or a turbulent regime, with probabilities updated daily. "

@@ -1,9 +1,9 @@
 {
-  "generated_at_utc": "2026-10-18T08:36:22+00:00",
+  "generated_at_utc": "2026-10-19T14:10:50+00:00",
   "cutoff": "2024-12-31",
   "first_origin": "2025-01-02",
-  "last_origin": "2026-10-16",
-  "n_origins": 451,
+  "last_origin": "2026-10-18",
+  "n_origins": 452,
   "fan_origin": "2026-07-01",
   "cost_bps": 5.0,
   "trade_band": 0.1,
@@ -12,11 +12,7 @@
   "models": [
     "RW",
     "LASSO",
-    "LASSO_1se",
-    "PCA_reg",
-    "TPCA",
-    "LASSO_RS",
-    "Combo_EW",
+    "XGB",
     "ARMA-GARCH",
     "MS-AR",
     "MS-ARX"
@@ -36,10 +32,11 @@
     60
   ],
   "trained_through": {
-    "lasso_family": "2024-12-31",
+    "lasso_regime": "2024-12-31",
     "arma_garch": "2024-12-31",
-    "msar": "2024-12-31"
+    "msar": "2024-12-31",
+    "xgboost": "2024-12-31"
   },
   "failed": [],
-  "seconds": 90.4
+  "seconds": 74.3
 }

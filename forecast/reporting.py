@@ -17,8 +17,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-MODEL_ORDER = ["RW", "LASSO", "LASSO_1se", "PCA_reg", "TPCA", "LASSO_RS", "Combo_EW", "ARMA-GARCH", "MS-AR", "MS-ARX", "HistMean", "AR"]
-LABELS = {"RW": "No change", "LASSO": "LASSO", "LASSO_1se": "LASSO 1-SE", "PCA_reg": "PCA reg.",
+MODEL_ORDER = ["RW", "LASSO", "XGB", "ARMA-GARCH", "MS-AR", "MS-ARX", "HistMean", "AR",
+               "LASSO_1se", "PCA_reg", "TPCA", "LASSO_RS", "Combo_EW"]       # last five: the earlier LASSO family (old log rows)
+LABELS = {"RW": "No change", "LASSO": "Regime LASSO", "XGB": "XGBoost", "LASSO_1se": "LASSO 1-SE", "PCA_reg": "PCA reg.",
           "TPCA": "Targeted PCA", "LASSO_RS": "LASSO regime", "Combo_EW": "Combo (equal wt)",
           "ARMA-GARCH": "ARMA-GARCH", "MS-AR": "MS-AR", "MS-ARX": "MS-ARX",
           "HistMean": "Historical mean", "AR": "AR (direct)"}

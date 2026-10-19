@@ -51,6 +51,32 @@ class Config:
     hmm_refit: int = 63
     hmm_window: Optional[int] = None
 
+    # ---- regime-dependent LASSO plugin (teammate's lasson.ipynb) ----
+    lr_cv_folds: int = 5                  # time-ordered cross-validation folds inside the window (gap of h days)
+    lr_n_alphas: int = 30
+    lr_eps: float = 1e-2                  # smallest penalty = 1% of the largest
+    lr_shrink: float = 0.5                # final forecast = 0.5 x LASSO (equal-weight combination with no change)
+    lr_min_duration: int = 120            # each regime lasts at least 120 trading days in expectation, and in the label
+    lr_enter_p: float = 0.7               # label turns turbulent if P(turbulent) > 0.7 for lr_confirm days ...
+    lr_exit_p: float = 0.3                # ... and back to calm if < 0.3 for lr_confirm days
+    lr_confirm: int = 10
+    lr_refit_every: int = 21              # back-fill only: re-estimate every 21 trading days (about monthly), as in the notebook
+
+    # ---- XGBoost plugin (teammate's xgbn.ipynb) ----
+    xgb_n_estimators: int = 500
+    xgb_learning_rate: float = 0.03
+    xgb_max_depth: int = 2
+    xgb_min_child_weight: float = 50
+    xgb_subsample: float = 0.7
+    xgb_colsample: float = 0.7
+    xgb_reg_lambda: float = 10.0
+    xgb_early_stopping: int = 50
+    xgb_inner_val: int = 252              # last 252 rows of the window (after an h-day gap) decide when to stop adding trees
+    xgb_seed: int = 7
+    xgb_shrink: float = 0.5
+    xgb_pca_min_eig: float = 1.0          # PCA variable selection: keep components with eigenvalue > 1 (Kaiser)
+    xgb_refit_every: int = 21
+
     # ---- ARMA-GARCH plugin (teammate's gp_arma_garch.ipynb: MA(2) mean, GARCH(1,1)-t on its residuals) ----
     arma_order: tuple = (0, 2)                        # (p, q); zero-mean ARMA fitted on daily log returns
     garch_pq: tuple = (1, 1)

@@ -15,8 +15,9 @@ TARGETS = {"brent_fut": "Brent", "wti_fut": "WTI"}
 PRICE_COL = {"brent_fut": "brent_fut", "wti_fut": "wti_fut"}
 SPOT_COL = {"brent_fut": "brent_spot", "wti_fut": "wti_spot"}
 SERIES_START = {"wti_fut": "2020-06-01"}                 # WTI futures went negative on 2020-04-20
-ORDER = ["RW", "LASSO", "LASSO_1se", "PCA_reg", "TPCA", "LASSO_RS", "Combo_EW", "ARMA-GARCH", "MS-AR", "MS-ARX", "HistMean", "AR"]
-LABELS = {"RW": "No change", "LASSO": "LASSO", "LASSO_1se": "LASSO 1-SE", "PCA_reg": "PCA reg.", "TPCA": "Targeted PCA",
+ORDER = ["RW", "LASSO", "XGB", "ARMA-GARCH", "MS-AR", "MS-ARX", "HistMean", "AR",
+         "LASSO_1se", "PCA_reg", "TPCA", "LASSO_RS", "Combo_EW"]          # last five: earlier LASSO family (old log rows)
+LABELS = {"RW": "No change", "LASSO": "Regime LASSO", "XGB": "XGBoost", "LASSO_1se": "LASSO 1-SE", "PCA_reg": "PCA reg.", "TPCA": "Targeted PCA",
           "LASSO_RS": "LASSO regime", "Combo_EW": "Combo (equal wt)", "ARMA-GARCH": "ARMA-GARCH", "MS-AR": "MS-AR",
           "MS-ARX": "MS-ARX", "HistMean": "Historical mean", "AR": "AR (direct)", "Buy & hold": "Buy & hold"}
 BENCH = ("HistMean", "AR")

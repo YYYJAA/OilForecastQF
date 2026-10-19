@@ -7,7 +7,7 @@ Writes  models/<plugin>.joblib        the fitted artifact (used by run_daily.py)
         models/<plugin>_meta.json     human-readable summary (train date, penalties, selected features)
         models/training_history.csv   one row per retrain
 
-Usage:  python scripts/train_models.py [--plugins lasso_family]
+Usage:  python scripts/train_models.py [--plugins lasso_regime xgboost]
 """
 import argparse
 import json
