@@ -79,6 +79,7 @@ def main():
 
     if live_parts:
         live = pd.concat(live_parts, ignore_index=True)
+        live["generated_at_utc"] = datetime.now(timezone.utc).isoformat(timespec="seconds")   # shown by the web app
         live.to_csv(OUTPUT_DIR / "latest_forecasts.csv", index=False)
         lp = OUTPUT_DIR / "forecast_log.csv"
         old = pd.read_csv(lp, parse_dates=["asof_date", "target_date_approx"]) if lp.exists() else pd.DataFrame()

@@ -99,6 +99,26 @@ def main():
     metrics.to_csv(OUT / "metrics.csv", index=False)
     trading.to_csv(OUT / "trading.csv", index=False)
 
+    # ---- compact files for the web app (app/): daily gross return + turnover of the trading rule (the app re-applies any
+    # cost), and a trimmed copy of the rolling forecasts. forecasts.csv itself stays out of git (too large).
+    cost0 = cfg.cost_bps / 1e4
+    eq_rows = []
+    for (t, m, h), g in fc.groupby(["target", "model", "horizon"]):
+        g = g.sort_values("asof_date").set_index("asof_date")
+        ret, turn, _ = ev.trading_rule(g, prices[t], int(h), cost0, cfg.trade_band)
+        eq_rows.append(pd.DataFrame({"date": ret.index, "target": t, "model": m, "horizon": int(h),
+                                     "gross": (ret + cost0 * turn).values, "turn": turn.values}))
+    for t in prices:                                               # buy & hold: one purchase on the first day
+        idx = pd.DatetimeIndex(sorted(fc[fc["target"] == t]["asof_date"].unique()))
+        p = prices[t]
+        nxt = (p.shift(-1) / p - 1).reindex(idx).dropna()
+        turn = np.zeros(len(nxt)); turn[0] = 1.0
+        eq_rows.append(pd.DataFrame({"date": nxt.index, "target": t, "model": "Buy & hold", "horizon": 0,
+                                     "gross": nxt.values, "turn": turn}))
+    pd.concat(eq_rows).round({"gross": 6, "turn": 4}).to_csv(OUT / "equity_curves.csv", index=False)
+    keep = fc[fc["horizon"].isin([1, 3, 10, 20])][["asof_date", "target", "model", "horizon", "forecast_return", "sigma"]]
+    keep.round({"forecast_return": 6, "sigma": 6}).to_csv(OUT / "rolling_forecasts.csv", index=False)
+
     # ---- one-origin fan: what the frozen models said on fan_origin vs what happened
     fan_rows = []
     for t, p in prices.items():

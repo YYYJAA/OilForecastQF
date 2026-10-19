@@ -146,6 +146,19 @@ python scripts/run_daily.py --backfill 30 # --backfill seeds the log with past f
 python scripts/send_email.py --dry-run    # writes email_preview/, sends nothing
 ```
 
+## Web app (Streamlit)
+`app/` is a read-only viewer over files the daily bot already commits (`Data/raw`, `Outputs/`, `models/*_meta.json`); it never downloads data or trains.
+Pages: Today (`app/Home.py`), Track record, Explore, About. Light dependencies only (`app/requirements.txt`).
+
+Run locally (in the `cs422` env): `streamlit run app/Home.py`
+
+**Deploy (free, Streamlit Community Cloud):** share.streamlit.io > sign in with GitHub > Create app > repo `OilForecastQF`, branch `main`,
+main file `app/Home.py`, Advanced settings > Python 3.11 > Deploy. Then Settings > Sharing > make it public ("anyone with the link").
+**Daily refresh:** the bot pushes to `main` every day and Streamlit Cloud redeploys on each push, so new data appears automatically
+(the sidebar shows when the data was last updated; "Refresh data" reloads the files). Free apps sleep after about 12 hours without visitors; the
+first visit shows a "wake up" button.
+Extra files for the app, written by `scripts/frozen_eval.py`: `Outputs/frozen_eval/equity_curves.csv`, `rolling_forecasts.csv`.
+
 ## Known limits
 * The `lasso_family` target is `brent_fut`, an unadjusted continuous front-month futures series (contract rolls appear as jumps).
 * EIA's futures-contract files stop in April 2024, so the curve-slope feature is unavailable.
