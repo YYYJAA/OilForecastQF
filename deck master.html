@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Real-Time Crude Oil Forecasting</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --bg:#F6F5F1; --paper:#FFFFFF; --ink:#0E1A2B; --navy:#13294B; --slate:#4A5568; --mute:#8A93A3;
+  --rule:#D5D2C8; --rule2:#E7E4DC;
+  --teal:#0E9E8A; --teal-t:#DDF2EE; --amber:#E3A21A; --amber-t:#FBEFD3; --red:#C0432F; --red-t:#F6E1DC;
+  --sans:"Helvetica Neue","Inter","Segoe UI",Arial,sans-serif;
+  --mono:"SF Mono","JetBrains Mono","IBM Plex Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#1b1f27;font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#deck{width:1920px;height:1080px;position:relative;transform-origin:center center;flex:none}
+.slide{position:absolute;inset:0;background:var(--bg);padding:84px 104px 0;display:none;overflow:hidden}
+.slide.active{display:block}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* header */
+.kicker{font-size:19px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);font-weight:700;display:flex;gap:18px;align-items:center}
+.kicker b{color:var(--navy);font-family:var(--mono);letter-spacing:0}
+.kicker::after{content:"";flex:1;height:2px;background:var(--navy);margin-left:8px}
+h2{font-size:58px;line-height:1.06;letter-spacing:-.02em;color:var(--navy);font-weight:800;margin-top:26px}
+.lede{font-size:26px;line-height:1.38;color:var(--slate);margin-top:16px;max-width:1712px}
+.lede em{font-style:normal;color:var(--ink);font-weight:700}
+
+/* footer */
+.foot{position:absolute;left:104px;right:104px;bottom:34px;display:flex;justify-content:space-between;align-items:flex-end;font-size:15px;color:var(--mute);border-top:1px solid var(--rule);padding-top:12px}
+.foot .src{max-width:1400px}
+.foot .pg{font-family:var(--mono);color:var(--navy);font-weight:700}
+
+/* grid + common */
+.row{display:grid;gap:64px;margin-top:44px}
+.colhead{font-size:17px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--navy);border-top:3px solid var(--navy);padding-top:12px;margin-bottom:18px;display:flex;justify-content:space-between}
+.colhead span{color:var(--mute);font-weight:600}
+.sm{font-size:21px;line-height:1.45;color:var(--slate)}
+.sm b{color:var(--ink)}
+ul.tight{list-style:none}
+ul.tight li{font-size:22px;line-height:1.4;padding:9px 0 9px 26px;position:relative;border-bottom:1px solid var(--rule2);color:var(--ink)}
+ul.tight li::before{content:"";position:absolute;left:2px;top:21px;width:10px;height:2px;background:var(--teal)}
+ul.tight li .m{color:var(--slate)}
+.stat .v{font-family:var(--mono);font-size:84px;font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--navy)}
+.stat .v.teal{color:var(--teal)} .stat .v.amber{color:var(--amber)} .stat .v.red{color:var(--red)}
+.stat .l{font-size:18px;color:var(--slate);margin-top:10px;line-height:1.35}
+.tag{display:inline-block;font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border:1.5px solid currentColor}
+.tag.teal{color:var(--teal)} .tag.amber{color:#B27A00} .tag.red{color:var(--red)} .tag.navy{color:var(--navy)}
+.eq{font-family:"Times New Roman",Georgia,serif;font-size:34px;color:var(--ink);line-height:1.5}
+.eq i{font-style:italic}
+.eq .op{font-family:var(--sans);font-size:28px;color:var(--mute);padding:0 6px}
+.hl-teal{background:var(--teal-t)} .hl-amber{background:var(--amber-t)}
+.c-teal{color:var(--teal)} .c-amber{color:#B27A00} .c-red{color:var(--red)} .c-mute{color:var(--mute)} .c-navy{color:var(--navy)}
+.chip{display:inline-block;font-family:var(--mono);font-size:16px;padding:5px 10px;margin:0 6px 8px 0;border:1px solid var(--rule);background:var(--paper);color:var(--ink)}
+.card{background:var(--paper);border:1px solid var(--rule);padding:22px 26px}
+.callout{border-left:6px solid var(--teal);padding-left:20px}
+.callout.amber{border-left-color:var(--amber)} .callout.red{border-left-color:var(--red)} .callout.navy{border-left-color:var(--navy)}
+
+/* tables */
+table.t{width:100%;border-collapse:collapse;font-size:21px}
+table.t th{font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);font-weight:700;text-align:right;padding:8px 10px;border-bottom:2px solid var(--navy)}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--rule2);font-family:var(--mono);font-variant-numeric:tabular-nums}
+table.t td:first-child{font-family:var(--sans);font-weight:600}
+table.t td.txt{text-align:left;font-family:var(--sans);font-weight:400;color:var(--slate)}
+table.t tr.bench td{color:var(--mute)}
+table.t tr.bench td:first-child{font-weight:400;font-style:italic}
+table.t tr.grp td{font-family:var(--sans);font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:700;padding-top:14px;border-bottom:1px solid var(--rule)}
+table.t td.g{background:var(--teal-t);color:#06705F;font-weight:700}
+table.t td.b{color:var(--red)}
+table.t th.sep,table.t td.sep{border-left:1px solid var(--rule)}
+sup.s{color:var(--teal);font-weight:800;font-size:.8em;line-height:0}
+sup.w{color:var(--red);font-weight:800;font-size:.8em;line-height:0}
+
+/* dark */
+.slide.dark{background:var(--navy);color:#fff}
+.slide.dark .kicker{color:var(--amber)} .slide.dark .kicker b{color:#fff} .slide.dark .kicker::after{background:rgba(255,255,255,.35)}
+.slide.dark .foot{border-top-color:rgba(255,255,255,.2);color:rgba(255,255,255,.55)} .slide.dark .foot .pg{color:#fff}
+
+/* section divider tag in kicker */
+.kicker .sec{color:var(--mute);letter-spacing:.14em}
+.nt{text-transform:none}
+
+/* nav hint */
+#hud{position:fixed;right:18px;bottom:12px;font:12px var(--mono);color:#9aa3b2;opacity:.7}
+
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{background:none}
+  #stage{position:static;display:block}
+  #deck{transform:none!important;width:auto;height:auto}
+  .slide{display:block!important;position:relative;width:1920px;height:1080px;page-break-after:always;break-after:page}
+  #hud{display:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div id="stage"><div id="deck">
+
+<!-- 01 TITLE -->
+<section class="slide dark">
+  <div class="kicker"><b>01</b> Time Series Analysis · Group Project · October 2026</div>
+  <div style="display:grid;grid-template-columns:1.25fr .75fr;gap:96px;margin-top:110px">
+    <div>
+      <div style="font-size:104px;line-height:.98;font-weight:800;letter-spacing:-.035em">Real-Time Crude Oil Forecasting</div>
+      <div style="font-size:40px;line-height:1.25;margin-top:30px;color:rgba(255,255,255,.82);font-weight:300">Multi-horizon benchmarking &amp; a daily automated pipeline</div>
+      <div style="font-size:24px;line-height:1.5;margin-top:48px;color:rgba(255,255,255,.7);max-width:1000px">
+        Volatility, regime-switching and gradient-boosted tree models, scored against the random walk on
+        <span style="color:var(--amber);font-weight:700">451 frozen out-of-sample days</span>, turned into a trading P&amp;L, and delivered by email every morning.
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:44px 40px;align-content:start;margin-top:14px">
+      <div><div class="num" style="font-size:88px;font-weight:700;color:var(--amber);line-height:1">2</div><div style="font-size:18px;color:rgba(255,255,255,.7);margin-top:8px">benchmarks<br>Brent · WTI</div></div>
+      <div><div class="num" style="font-size:88px;font-weight:700;color:#fff;line-height:1">3</div><div style="font-size:18px;color:rgba(255,255,255,.7);margin-top:8px">model families<br>GARCH · MS-AR · XGBoost</div></div>
+      <div><div class="num" style="font-size:88px;font-weight:700;color:#fff;line-height:1">8</div><div style="font-size:18px;color:rgba(255,255,255,.7);margin-top:8px">horizons<br>+1d … +60d</div></div>
+      <div><div class="num" style="font-size:88px;font-weight:700;color:#5FD3C1;line-height:1">0</div><div style="font-size:18px;color:rgba(255,255,255,.7);margin-top:8px">refits during<br>the frozen test</div></div>
+    </div>
+  </div>
+  <div style="position:absolute;left:104px;right:104px;bottom:120px;display:grid;grid-template-columns:repeat(4,1fr);gap:48px">
+    <div style="border-top:2px solid rgba(255,255,255,.5);padding-top:14px"><div style="font-size:15px;letter-spacing:.16em;color:var(--amber);font-weight:700">TRAIN ON</div><div style="font-size:28px;margin-top:6px">FRED spot prices (roll-free)</div></div>
+    <div style="border-top:2px solid rgba(255,255,255,.5);padding-top:14px"><div style="font-size:15px;letter-spacing:.16em;color:var(--amber);font-weight:700">TRADE ON</div><div style="font-size:28px;margin-top:6px">Brent &amp; WTI front-month futures</div></div>
+    <div style="border-top:2px solid rgba(255,255,255,.5);padding-top:14px"><div style="font-size:15px;letter-spacing:.16em;color:var(--amber);font-weight:700">HORIZON</div><div style="font-size:28px;margin-top:6px">1 – 60 trading days ahead</div></div>
+    <div style="border-top:2px solid rgba(255,255,255,.5);padding-top:14px"><div style="font-size:15px;letter-spacing:.16em;color:var(--amber);font-weight:700">MODE</div><div style="font-size:28px;margin-top:6px">Automated daily production</div></div>
+  </div>
+  <div class="foot"><div class="src">Why now: on 27 Jul 2026 Brent fell ~10.9% in a single session; through Jul–Aug oil was at least as volatile as Bitcoin.</div><div class="pg"></div></div>
+</section>
+
+<!-- 02 DATA -->
+<section class="slide">
+  <div class="kicker"><b>02</b> Data · choice of series</div>
+  <h2>Train on spot, trade on futures</h2>
+  <p class="lede">The continuous futures series switches contract every month, and each switch shows up as a <em>price jump that is not a return</em>. We learn dynamics from the roll-free spot price and apply the forecasts to the contract we can actually trade.</p>
+
+  <div class="row" style="grid-template-columns:1fr 1fr 1.15fr;gap:56px;margin-top:40px">
+    <div>
+      <div class="colhead">① Training target <span>FRED / EIA</span></div>
+      <div class="card" style="border-top:6px solid var(--teal)">
+        <div style="font-size:30px;font-weight:800;color:var(--navy)">Spot price</div>
+        <div class="num" style="font-size:18px;color:var(--slate);margin-top:6px">DCOILBRENTEU · DCOILWTICO</div>
+        <ul class="tight" style="margin-top:14px">
+          <li>One physical price per day <span class="m">→ no contract roll</span></li>
+          <li>Returns are true returns <span class="m">→ clean target for estimation</span></li>
+          <li class="c-amber" style="color:#7A5300">Published with ~1 week delay <span class="m">(last obs 14 Oct vs 21 Oct)</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="colhead">② Trading &amp; scoring <span>Yahoo</span></div>
+      <div class="card" style="border-top:6px solid var(--navy)">
+        <div style="font-size:30px;font-weight:800;color:var(--navy)">Front-month futures</div>
+        <div class="num" style="font-size:18px;color:var(--slate);margin-top:6px">BZ=F (ICE Brent) · CL=F (NYMEX WTI)</div>
+        <ul class="tight" style="margin-top:14px">
+          <li>Tradable, settles the same evening</li>
+          <li>Close 21 Oct: <b class="num">Brent 110.04</b> · <b class="num">WTI 98.07</b></li>
+          <li style="color:var(--red)">Unadjusted rolls <span class="m">→ jump = calendar spread</span></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="colhead">③ Predictors <span>publication lag applied</span></div>
+      <table class="t" style="font-size:18px">
+        <tr><td style="width:170px">Market · daily</td><td class="txt">crack spread, natgas, XLE, S&amp;P 500, VIX, DXY, gold, copper, USD/CAD, USD/NOK, EEM</td><td class="c-teal">t</td></tr>
+        <tr><td>Rates · FRED</td><td class="txt">UST 10Y, 10Y–2Y, 10Y–3M, 10Y breakeven, OVX, EPU</td><td class="c-amber">t+1</td></tr>
+        <tr><td>Weekly · EIA</td><td class="txt">crude inventories, Weekly Economic Index</td><td class="c-amber">t+6</td></tr>
+      </table>
+      <div class="sm" style="margin-top:16px;font-size:18px">All entered as changes or 1-year z-scores, never raw levels.</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:56px;margin-top:40px">
+    <div class="callout red"><div class="sm"><b>Why not train on futures directly?</b> A roll day adds the spread between two contracts to the “return”. In steep markets that is several percent, and the model would learn noise that no trader could earn.</div></div>
+    <div class="callout"><div class="sm"><b>Why still trade futures?</b> Spot is a physical assessment, not an instrument. P&amp;L, hit-rates and RMSE are scored on the futures price an investor would hold.</div></div>
+  </div>
+  <div class="foot"><div class="src">Hygiene: WTI history starts 2020-06-01 (skips the −$37.63 settle of 20 Apr 2020) · EIA curve-slope files end Apr 2024, feature dropped · FRED crude-stock series discontinued, sourced from EIA.</div><div class="pg"></div></div>
+</section>
+
+<!-- 03 EDA: SHOCKS -->
+<section class="slide">
+  <div class="kicker"><b>03</b> Exploratory analysis · what moves oil</div>
+  <h2>Exogenous shocks dominate the price path</h2>
+  <p class="lede">A handful of days driven by wars, OPEC+ decisions and the pandemic account for most of the variance. None of them is visible in lagged market data <em>before</em> it happens.</p>
+
+  <div class="row" style="grid-template-columns:1fr 470px;gap:64px;margin-top:34px">
+    <div>
+      <div class="colhead">Brent front-month · weekly close, 2016 – Oct 2026 <span>$/bbl · largest daily moves marked</span></div>
+      <svg id="shock" viewBox="-60 -40 1180 560" style="width:100%;height:560px"></svg>
+    </div>
+    <div>
+      <div class="colhead">Brent daily returns <span>2016–2026, n = 2,674</span></div>
+      <div style="display:grid;grid-template-columns:1fr;gap:26px">
+        <div class="stat"><div class="v red">53%</div><div class="l">of total return variance comes from the <b>5% largest days</b> (top 1% alone: 29%)</div></div>
+        <div class="stat"><div class="v">14.7</div><div class="l">excess kurtosis (normal = 0); skew −1.1. WTI futures: 65</div></div>
+        <div class="stat"><div class="v amber">132</div><div class="l">days with a move larger than ±5%; annualised volatility 41%</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div class="src">Source: Yahoo BZ=F daily closes; moves are daily log-returns of the front-month series. Variance share = sum of squared returns on the largest days / total. Spot series are even more extreme (Brent spot kurtosis 78).</div><div class="pg"></div></div>
+</section>
+
+<!-- 04 EDA: SPOT VS FUTURES -->
+<section class="slide">
+  <div class="kicker"><b>04</b> Exploratory analysis · spot vs futures</div>
+  <h2>Same oil, different series: the roll leaks into futures returns</h2>
+  <p class="lede">Spot and front-month futures track each other, but on roll days and in steep markets they disagree by several percent. That gap is the reason we <em>train on spot</em>.</p>
+
+  <div class="row" style="grid-template-columns:1fr 560px;gap:64px;margin-top:34px">
+    <div>
+      <div class="colhead">Brent · spot vs futures, Oct 25 – Oct 26 <span>$/bbl · below: daily return gap, %</span></div>
+      <svg id="spotfut" viewBox="-60 -10 1180 560" style="width:100%;height:560px"></svg>
+    </div>
+    <div>
+      <div class="colhead">Daily log-returns, futures vs spot <span>2016–2026</span></div>
+      <table class="t" style="font-size:20px">
+        <tr><th></th><th>WTI</th><th>Brent</th></tr>
+        <tr><td>Return correlation</td><td>0.947</td><td>0.809</td></tr>
+        <tr><td>Std of return gap</td><td>1.1%</td><td>1.9%</td></tr>
+        <tr><td>Days with |gap| &gt; 3%</td><td>29</td><td class="b">126</td></tr>
+        <tr><td>Trading days</td><td>2,693</td><td>2,674</td></tr>
+      </table>
+      <div class="callout amber" style="margin-top:34px"><div class="sm"><b>2026 backwardation.</b> Brent front-month traded a median $2.8 and up to $33 below spot. Every monthly roll moves the continuous futures series by that spread.</div></div>
+      <div class="callout" style="margin-top:22px"><div class="sm"><b>Consequence.</b> Fitting on futures returns would teach the model roll jumps; spot returns keep only the real price change.</div></div>
+    </div>
+  </div>
+  <div class="foot"><div class="src">Source: eda_futures_vs_spot.ipynb · Yahoo BZ=F / CL=F vs FRED DCOILBRENTEU / DCOILWTICO, days where both are published and positive.</div><div class="pg"></div></div>
+</section>
+
+<!-- 05 VALIDATION -->
+<section class="slide">
+  <div class="kicker"><b>05</b> Evaluation design</div>
+  <h2>What the model knew, and when it knew it</h2>
+  <p class="lede">Every input enters with its real publication lag. The test period is <em>never</em> used for estimation or model selection.</p>
+
+  <div style="margin-top:50px">
+    <div class="colhead">Validation protocol <span>zero look-ahead</span></div>
+    <div style="position:relative;height:330px;margin-top:6px">
+      <div style="position:absolute;left:0;right:0;top:270px;height:1px;background:var(--ink)"></div>
+      <div class="num" style="position:absolute;top:282px;left:0;right:0;font-size:18px;color:var(--slate)">
+        <span style="position:absolute;left:0%">2019</span><span style="position:absolute;left:12.5%">2020</span><span style="position:absolute;left:25%">2021</span><span style="position:absolute;left:37.5%">2022</span><span style="position:absolute;left:50%">2023</span><span style="position:absolute;left:62.5%">2024</span><span style="position:absolute;left:75%">2025</span><span style="position:absolute;left:87.5%">2026</span>
+      </div>
+      <div style="position:absolute;top:30px;left:12.5%;width:62.5%;height:60px;background:var(--navy);color:#fff;font-size:22px;font-weight:700;padding:16px 18px">Estimation · rolling ~5-year windows → 2024-12-31</div>
+      <div style="position:absolute;top:104px;left:37.5%;width:25%;height:60px;background:var(--amber-t);border:2px solid var(--amber);font-size:22px;font-weight:700;padding:14px 16px;color:#7A5300">Validation 2022–23</div>
+      <div style="position:absolute;top:30px;left:75%;width:22.5%;height:134px;background:var(--teal);color:#fff;font-size:22px;font-weight:700;padding:16px 16px;line-height:1.3">Frozen test<br><span class="num" style="font-size:40px">n = 451</span></div>
+      <div style="position:absolute;top:180px;left:75%;width:22.5%;height:60px;border:2px dashed var(--navy);font-size:21px;font-weight:700;padding:15px 16px;color:var(--navy)">Live · quarterly refit</div>
+      <div style="position:absolute;top:0;left:75%;height:270px;border-left:3px solid var(--red)"></div>
+      <div style="position:absolute;top:-8px;left:75.5%;font-size:16px;font-weight:700;color:var(--red);letter-spacing:.06em">CUTOFF 2024-12-31</div>
+      <div style="position:absolute;top:200px;left:17.7%;height:70px;border-left:2px dotted var(--slate)"></div>
+      <div style="position:absolute;top:212px;left:18.3%;font-size:17px;color:var(--slate)">WTI history starts 2020-06-01 (skips −$37.63 settle)</div>
+    </div>
+  </div>
+  <table class="t" style="font-size:21px;margin-top:30px">
+    <tr><td style="width:280px"><span class="c-navy">■</span> In-sample</td><td class="txt">Parameters estimated on data through 2024-12-31 only</td></tr>
+    <tr><td><span class="c-amber">■</span> Validation</td><td class="txt">Windows, mean weights and shrinkage chosen on 2022–2023</td></tr>
+    <tr><td><span class="c-teal">■</span> Frozen test</td><td class="txt">2025-01-02 → 2026-10-18, parameters fixed: measures pure skill plus model ageing</td></tr>
+    <tr><td><span class="c-navy">□</span> Production</td><td class="txt">Quarterly retrain; fresh data fed through saved models every day</td></tr>
+  </table>
+  <div class="foot"><div class="src">451 forecast origins, 2025-01-02 → 2026-10-18. Targets with horizon h use only rows whose outcome is observed at the origin (purge rule).</div><div class="pg"></div></div>
+</section>
+
+<!-- 06 BENCHMARK & METRICS -->
+<section class="slide">
+  <div class="kicker"><b>06</b> Benchmark &amp; metrics</div>
+  <h2>The hurdle: beat “no change”</h2>
+  <p class="lede">If daily oil returns are close to a martingale difference sequence, the best point forecast of tomorrow’s price is today’s price.</p>
+
+  <div class="row" style="grid-template-columns:1fr 1fr;gap:96px">
+    <div>
+      <div class="colhead">Null &amp; scoring rule</div>
+      <div class="eq" style="margin-top:6px"><i>E</i>[ <i>r</i><sub><i>t</i>+<i>h</i></sub> | 𝓕<sub><i>t</i></sub> ] ≈ 0 <span class="op">⇒</span> <i>P̂</i><sub><i>t</i>+<i>h</i></sub> = <i>P</i><sub><i>t</i></sub></div>
+      <div style="margin-top:34px;padding:26px 30px;border-left:6px solid var(--teal);background:var(--paper)">
+        <div class="eq" style="font-size:40px">RMSE<sub>model</sub> / RMSE<sub>RW</sub> <span class="c-teal" style="font-family:var(--mono);font-weight:700">&lt; 1.000</span></div>
+        <div class="sm" style="margin-top:6px">a ratio below one is genuine predictive edge over the random walk</div>
+      </div>
+      <div style="margin-top:26px;padding:22px 30px;border-left:6px solid var(--amber);background:var(--paper)">
+        <div class="eq" style="font-size:30px">Diebold–Mariano vs RW · HAC, <i>h</i>−1 lags · <span style="font-family:var(--mono);font-weight:700;color:#B27A00">p &lt; 0.10</span></div>
+        <div class="sm" style="margin-top:4px">is the error reduction distinguishable from luck?</div>
+      </div>
+      <div class="colhead" style="margin-top:38px">Benchmarks <span>estimated to cutoff</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;font-size:22px">
+        <div><b>Random walk</b><div class="sm">no change</div></div>
+        <div><b>Historical mean</b><div class="sm">constant drift</div></div>
+        <div><b>Direct AR(<i>p</i>)</b><div class="sm">one model per <i>h</i></div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="colhead">How hard is it? <span>MAPE of no-change, test period</span></div>
+      <div style="margin-top:14px">
+        <div style="display:grid;grid-template-columns:90px 1fr 120px;align-items:center;row-gap:26px;font-size:22px">
+          <div class="num" style="font-weight:700">+1d</div><div style="height:46px;background:var(--navy);width:11.1%"></div><div class="num" style="text-align:right"><b>2.0%</b></div>
+          <div class="num" style="font-weight:700">+5d</div><div style="height:46px;background:var(--navy);width:26.1%"></div><div class="num" style="text-align:right"><b>4.7%</b></div>
+          <div class="num" style="font-weight:700">+20d</div><div style="height:46px;background:var(--navy);width:47.3%"></div><div class="num" style="text-align:right"><b>8.5%</b></div>
+          <div class="num" style="font-weight:700">+60d</div><div style="height:46px;background:var(--amber);width:88.3%"></div><div class="num" style="text-align:right"><b>15.9%</b></div>
+        </div>
+        <div class="sm num" style="margin-top:14px;font-size:17px">Brent / WTI: 1.99 / 2.07 · 4.57 / 4.82 · 8.50 / 8.54 · 15.78 / 16.05</div>
+      </div>
+      <div class="colhead" style="margin-top:46px">Scored on five axes</div>
+      <table class="t" style="font-size:19px">
+        <tr><td style="width:190px">Accuracy</td><td class="txt">RMSE, MAE, MAPE, ratio to RW</td></tr>
+        <tr><td>Direction</td><td class="txt">hit-rate, precision / recall / F1</td></tr>
+        <tr><td>Calibration</td><td class="txt">share of outcomes inside ±1σ (target 68%)</td></tr>
+        <tr><td>Robustness</td><td class="txt">high vs low volatility, by year, 4 sub-windows</td></tr>
+        <tr><td>Economic value</td><td class="txt">P&amp;L, annualised return, Sharpe, max drawdown, costs</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div class="src">Source: frozen evaluation, 451 forecast origins, 2025-01-02 → 2026-10-18.</div><div class="pg"></div></div>
+</section>
+
+<!-- 07 MODEL 1 · ARMA-GARCH · METHOD -->
+<section class="slide">
+  <div class="kicker"><b>07</b> Model 1 · ARMA-GARCH <span class="sec">· method</span></div>
+  <h2>ARMA-GARCH: a model for the second moment</h2>
+  <p class="lede">A low-order mean with fat-tailed, clustered volatility. We do not expect it to beat no change on the mean. Its job is to say <em>how wide</em> tomorrow’s range should be.</p>
+
+  <div class="row" style="grid-template-columns:1fr 1fr;gap:96px">
+    <div>
+      <div class="colhead">Specification <span>MA(2) · GARCH(1,1)-t</span></div>
+      <div class="eq" style="font-size:32px"><i>r<sub>t</sub></i> = ε<sub><i>t</i></sub> + θ<sub>1</sub>ε<sub><i>t</i>−1</sub> + θ<sub>2</sub>ε<sub><i>t</i>−2</sub></div>
+      <div class="eq" style="font-size:32px">σ<sup>2</sup><sub><i>t</i></sub> = ω + α ε<sup>2</sup><sub><i>t</i>−1</sub> + β σ<sup>2</sup><sub><i>t</i>−1</sub>, &nbsp;ε<sub><i>t</i></sub> ~ Student-<i>t</i>(ν)</div>
+      <div class="colhead" style="margin-top:30px">From 1-day to <i style="text-transform:none">h</i>-day</div>
+      <div class="eq" style="font-size:28px">μ̂<sub><i>h</i></sub> = Σ<sub><i>k</i>≤<i>h</i></sub> <i>r̂</i><sub><i>t</i>+<i>k</i></sub>, &nbsp; σ<sub><i>h</i></sub><sup>2</sup> = Σ<sub><i>k</i></sub> <i>c<sub>k</sub></i><sup>2</sup> · <i>E</i><sub><i>t</i></sub>[σ<sup>2</sup><sub><i>t</i>+<i>k</i></sub>]</div>
+      <div class="sm" style="margin-top:8px">exact variance of the cumulative return; <i>c<sub>k</sub></i> = summed MA impulse responses</div>
+      <ul class="tight" style="margin-top:22px">
+        <li>Fitted on daily log returns; refit quarterly, <b>filtered</b> daily with fixed parameters</li>
+        <li>Low order, no exogenous inputs <span class="m">→ nothing to overfit</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="colhead">Fitted parameters <span>Oct 2026 refit</span></div>
+      <table class="t" style="font-size:21px">
+        <tr><th>Parameter</th><th>Brent</th><th>WTI</th><th>Reading</th></tr>
+        <tr><td>θ<sub>1</sub>, θ<sub>2</sub></td><td>−0.019, −0.000</td><td>−0.016, −0.027</td><td class="txt">mean ≈ 0</td></tr>
+        <tr><td>α (news)</td><td>0.082</td><td>0.079</td><td class="txt">shocks feed vol</td></tr>
+        <tr><td>β (memory)</td><td>0.913</td><td>0.908</td><td class="txt">vol is sticky</td></tr>
+        <tr><td>α + β</td><td class="g">0.995</td><td class="g">0.987</td><td class="txt">half-life ≈ 2–7 months</td></tr>
+        <tr><td>ν (tail)</td><td>5.6</td><td>7.7</td><td class="txt">fat tails</td></tr>
+      </table>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:36px">
+        <div class="callout"><div class="sm"><b>Role in the system:</b> the ±1σ envelope in every chart, email and the trading rule’s noise filter.</div></div>
+        <div class="callout amber"><div class="sm"><b>Why Student-<i>t</i>:</b> the EDA showed excess kurtosis of 15–65; Gaussian bands would be far too narrow on shock days.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div class="src">Specification from gp_arma_garch.ipynb. Frozen test uses the parameters estimated to 2024-12-31.</div><div class="pg"></div></div>
+</section>
+
+<!-- 08 MODEL 1 · ARMA-GARCH · RESULTS -->
+<section class="slide">
+  <div class="kicker"><b>08</b> Model 1 · ARMA-GARCH <span class="sec">· results</span></div>
+  <h2>No edge in the mean, honest bands at every horizon</h2>
+  <p class="lede">RMSE ratio sits at 1.000, as expected. Coverage of the ±1σ band stays within <em>68–75%</em> from +1d to +60d on both series.</p>
+
+  <div class="row" style="grid-template-columns:860px 1fr;gap:72px;margin-top:38px">
+    <div>
+      <div class="colhead">Frozen test <span>RMSE / RMSE<sub>RW</sub> · hit % · ±1<span class="nt">σ</span> coverage %</span></div>
+      <table class="t" style="font-size:19px">
+        <tr><th></th><th>+1d</th><th>+3d</th><th>+5d</th><th>+20d</th><th>+60d</th></tr>
+        <tr class="grp"><td colspan="6">Brent</td></tr>
+        <tr><td>RMSE ratio</td><td>1.000</td><td>0.999</td><td>1.000</td><td>1.000</td><td>1.000</td></tr>
+        <tr><td>Hit-rate</td><td>51</td><td>49</td><td>48</td><td>53</td><td>52</td></tr>
+        <tr><td>±1σ coverage</td><td class="g">72</td><td class="g">69</td><td class="g">71</td><td class="g">71</td><td class="g">70</td></tr>
+        <tr class="grp"><td colspan="6">WTI</td></tr>
+        <tr><td>RMSE ratio</td><td>1.000</td><td>0.999</td><td>1.001</td><td>1.000</td><td>1.000</td></tr>
+        <tr><td>Hit-rate</td><td>51</td><td>50</td><td>50</td><td>54</td><td>51</td></tr>
+        <tr><td>±1σ coverage</td><td class="g">72</td><td class="g">70</td><td class="g">68</td><td class="g">75</td><td class="g">71</td></tr>
+      </table>
+      <div class="sm" style="margin-top:12px;font-size:17px">DM p-values vs no change all &gt; 0.38: indistinguishable from the random walk, by design.</div>
+    </div>
+    <div>
+      <div class="colhead">±1<span class="nt">σ</span> coverage by horizon <span>target 68%</span></div>
+      <div id="covbars"></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:56px;margin-top:34px">
+    <div class="stat"><div class="v teal" style="font-size:60px">0.993–1.005</div><div class="l">range of RMSE ratios across 4 test sub-windows: stable, never harmful</div></div>
+    <div class="stat"><div class="v" style="font-size:60px">0%</div><div class="l">days in market on Brent: the mean forecast never clears the 0.1σ trading filter</div></div>
+    <div class="stat"><div class="v amber" style="font-size:60px">16 / 16</div><div class="l">horizon × series cells with coverage inside 68–75%: bands widen and shrink with σ<sub>t</sub></div></div>
+  </div>
+  <div class="foot"><div class="src">451 origins, parameters frozen at 2024-12-31. Coverage = share of realised prices inside price × exp(±σ<sub>h</sub>).</div><div class="pg"></div></div>
+</section>
+
+<!-- 09 MODEL 2 · MS-AR · METHOD -->
+<section class="slide">
+  <div class="kicker"><b>09</b> Model 2 · Regime switching <span class="sec">· method</span></div>
+  <h2>MS-AR / ARX: calm and shock states</h2>
+  <p class="lede">Oil alternates between quiet periods and shock periods (slide 3). A Hamilton filter over two latent states lets the mean and volatility <em>change with the state</em>.</p>
+
+  <div class="row" style="grid-template-columns:760px 1fr;gap:88px">
+    <div>
+      <div class="colhead">Specification <span>Brent fit, Oct 2026</span></div>
+      <div class="eq" style="font-size:30px"><i>r<sub>t</sub></i> = μ<sub><i>s<sub>t</sub></i></sub> + φ <i>r</i><sub><i>t</i>−1</sub> + <span class="c-mute">δ′<i>x</i><sub><i>t</i>−1</sub></span> + σ<sub><i>s<sub>t</sub></i></sub> ε<sub><i>t</i></sub>, &nbsp;<i>s<sub>t</sub></i> ∈ {calm, shock}</div>
+      <svg viewBox="0 -24 720 234" style="width:100%;margin-top:14px">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#13294B"/></marker></defs>
+        <circle cx="170" cy="110" r="78" fill="#DDF2EE" stroke="#0E9E8A" stroke-width="3"/>
+        <circle cx="550" cy="110" r="78" fill="#F6E1DC" stroke="#C0432F" stroke-width="3"/>
+        <text x="170" y="98" text-anchor="middle" font-size="24" font-weight="700" fill="#0E1A2B">Calm</text>
+        <text x="170" y="128" text-anchor="middle" font-size="19" fill="#4A5568" font-family="Menlo,monospace">σ ≈ 1.8%/d</text>
+        <text x="550" y="98" text-anchor="middle" font-size="24" font-weight="700" fill="#0E1A2B">Shock</text>
+        <text x="550" y="128" text-anchor="middle" font-size="19" fill="#4A5568" font-family="Menlo,monospace">σ ≈ 4.2%/d</text>
+        <path d="M250,85 Q360,30 470,85" fill="none" stroke="#13294B" stroke-width="2.5" marker-end="url(#ah)"/>
+        <path d="M470,135 Q360,190 250,135" fill="none" stroke="#13294B" stroke-width="2.5" marker-end="url(#ah)"/>
+        <text x="360" y="44" text-anchor="middle" font-size="18" fill="#13294B" font-family="Menlo,monospace">0.019</text>
+        <text x="360" y="190" text-anchor="middle" font-size="18" fill="#13294B" font-family="Menlo,monospace">0.071</text>
+        <text x="170" y="-6" text-anchor="middle" font-size="17" fill="#4A5568" font-family="Menlo,monospace">p₁₁ = 0.981 (~52d)</text>
+        <text x="550" y="-6" text-anchor="middle" font-size="17" fill="#4A5568" font-family="Menlo,monospace">p₂₂ = 0.929 (~14d)</text>
+      </svg>
+      <table class="t" style="font-size:18px;margin-top:6px">
+        <tr><th>Variant</th><th>Window</th><th>Mean weight</th><th>Exogenous <i>x</i></th></tr>
+        <tr><td>MS-AR</td><td>1,260d</td><td>1.00</td><td class="txt">none</td></tr>
+        <tr><td>MS-ARX</td><td>756d</td><td>0.25</td><td class="txt">other benchmark, DXY, Brent–WTI spread</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="colhead">How a forecast is built</div>
+      <ul class="tight">
+        <li><b>Filter</b> today’s state probabilities with fixed parameters <span class="m">(Hamilton filter)</span></li>
+        <li><b>Mean</b>: exact regime-weighted cumulative return over <i>h</i> days, × mean weight</li>
+        <li><b>Band</b>: 4,000 simulated paths through future regimes <span class="m">→ ±1σ</span></li>
+        <li><b>Refit</b> every 63 trading days; window and weight chosen on 2022–23</li>
+      </ul>
+      <div class="colhead" style="margin-top:34px">What we expected</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px">
+        <div class="stat"><div class="v teal" style="font-size:64px">2.3×</div><div class="l">daily σ in the shock state vs calm</div></div>
+        <div class="stat"><div class="v" style="font-size:64px">52 / 14d</div><div class="l">expected duration of calm / shock spells</div></div>
+      </div>
+      <div class="callout amber" style="margin-top:30px"><div class="sm"><b>Mean weight 0.25 for MS-ARX</b>: validation preferred shrinking the conditional mean three-quarters of the way to no change.</div></div>
+    </div>
+  </div>
+  <div class="foot"><div class="src">Specification from msar.ipynb (statsmodels MarkovAutoregression). For WTI the “other benchmark” input is Brent; window and weight chosen on Brent are reused.</div><div class="pg"></div></div>
+</section>
+
+<!-- 10 MODEL 2 · MS-AR · RESULTS -->
+<section class="slide">
+  <div class="kicker"><b>10</b> Model 2 · Regime switching <span class="sec">· results</span></div>
+  <h2>Real regimes, overshooting forecasts</h2>
+  <p class="lede">Regimes are clean in-sample; out of sample the state mean <em>extrapolates trends that do not persist</em>, and the error is worst in calm markets.</p>
+
+  <div class="row" style="grid-template-columns:820px 1fr;gap:80px;margin-top:38px">
+    <div>
+      <div class="colhead">Frozen test · RMSE / RMSE<sub>RW</sub> <span>hit % at +3d · ±1<span class="nt">σ</span> % at +1d</span></div>
+      <table class="t" style="font-size:19px">
+        <tr><th>Model</th><th>+1d</th><th>+3d</th><th>+5d</th><th>+20d</th><th>+60d</th><th class="sep">Hit</th><th>±1<span class="nt">σ</span></th></tr>
+        <tr class="grp"><td colspan="8">Brent</td></tr>
+        <tr><td>MS-AR</td><td>1.004</td><td class="b">1.012</td><td class="b">1.014</td><td class="b">1.011</td><td class="g">0.979</td><td class="sep">48</td><td>76</td></tr>
+        <tr><td>MS-ARX</td><td>1.000</td><td>1.006</td><td>1.005</td><td>1.002</td><td>0.997</td><td class="sep b">44</td><td>73</td></tr>
+        <tr class="grp"><td colspan="8">WTI</td></tr>
+        <tr><td>MS-AR</td><td>1.001</td><td>1.003</td><td>1.004</td><td class="b">1.031</td><td>0.993</td><td class="sep">48</td><td>67</td></tr>
+        <tr><td>MS-ARX</td><td>1.001</td><td class="b">1.004<sup class="w">†</sup></td><td class="b">1.005<sup class="w">†</sup></td><td>1.004</td><td>1.001</td><td class="sep b">43</td><td>72</td></tr>
+      </table>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:36px">
+        <div class="stat"><div class="v red" style="font-size:60px">1.28</div><div class="l">MS-AR WTI +20d on <b>low-vol</b> days: trend overshoot</div></div>
+        <div class="stat"><div class="v red" style="font-size:60px">41%</div><div class="l">MS-ARX WTI +5d hit-rate; DM p = 0.01, significantly <b>worse</b></div></div>
+        <div class="stat"><div class="v amber" style="font-size:60px">−0.70</div><div class="l">Sharpe of MS-AR on Brent (+3d rule): churns in choppy markets</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="colhead">Stability across 4 test sub-windows <span>WTI · RMSE / RMSE<sub>RW</sub></span></div>
+      <div id="ranges" style="position:relative;margin-top:8px"></div>
+      <div class="callout" style="margin-top:26px"><div class="sm"><b>One bright spot:</b> Brent +60d MS-AR 0.979 (not significant), helped by the 2026 high-volatility spell (0.965 on high-vol days).</div></div>
+    </div>
+  </div>
+  <div class="foot"><div class="src"><sup class="w">†</sup> DM p &lt; 0.05 worse than no change · band from 4,000 simulated paths · refit every 63 days in production.</div><div class="pg"></div></div>
+</section>
+
+<!-- 11 MODEL 3 · XGBOOST · METHOD -->
+<section class="slide">
+  <div class="kicker"><b>11</b> Model 3 · Machine learning <span class="sec">· method</span></div>
+  <h2>XGBoost: many factors in, few kept, heavy shrinkage</h2>
+  <p class="lede">Non-linear interactions across momentum, volatility, regime and cross-asset signals, with <em>every safeguard pointing back toward no change</em>.</p>
+
+  <div style="margin-top:44px">
+    <div class="colhead">Per training window and horizon <span>one model per h</span></div>
+    <div style="display:grid;grid-template-columns:1fr 36px 1fr 36px 1fr 36px 1fr 36px 1fr;align-items:stretch">
+      <div class="card"><div class="num c-teal" style="font-weight:700;font-size:17px">01 · CANDIDATES</div><div style="font-size:40px;font-weight:800;color:var(--navy);margin-top:6px">20+</div><div class="sm" style="font-size:18px">factors: own momentum &amp; MA gaps, realised vol, OVX/VIX, crack spread, cross-asset 20d returns, rates, breakevens</div></div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--navy)">→</div>
+      <div class="card"><div class="num c-teal" style="font-weight:700;font-size:17px">02 · PCA SCREEN</div><div style="font-size:40px;font-weight:800;color:var(--navy);margin-top:6px">7</div><div class="sm" style="font-size:18px">most relevant factors kept each run: one per principal component with eigenvalue &gt; 1</div></div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--navy)">→</div>
+      <div class="card"><div class="num c-teal" style="font-weight:700;font-size:17px">03 · REGIME</div><div style="font-size:40px;font-weight:800;color:var(--navy);margin-top:6px">≥120d</div><div class="sm" style="font-size:18px">calm / turbulent state added as input; minimum regime length 120 trading days, so one big day cannot flip it</div></div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--navy)">→</div>
+      <div class="card"><div class="num c-teal" style="font-weight:700;font-size:17px">04 · TREES</div><div style="font-size:40px;font-weight:800;color:var(--navy);margin-top:6px">depth 2</div><div class="sm" style="font-size:18px">≤500 trees, η 0.03, λ 10, early stopping on last 252 days with an <i>h</i>-day gap</div></div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--navy)">→</div>
+      <div class="card" style="background:var(--navy);color:#fff;border-color:var(--navy)"><div class="num" style="font-weight:700;font-size:17px;color:var(--amber)">05 · SHRINK</div><div style="font-size:40px;font-weight:800;margin-top:6px">× 0.5</div><div style="font-size:18px;line-height:1.45;color:rgba(255,255,255,.8)">final forecast halfway to no change</div></div>
+    </div>
+  </div>
+
+  <div class="row" style="grid-template-columns:1fr 1fr 1fr;gap:56px;margin-top:44px">
+    <div>
+      <div class="colhead">Training scheme</div>
+      <table class="t" style="font-size:19px">
+        <tr><td style="width:200px">Rolling window</td><td class="txt">1,250 trading days (~5 years)</td></tr>
+        <tr><td>Leaf / sampling</td><td class="txt">min child 50 · row &amp; col 0.7</td></tr>
+        <tr><td>Target</td><td class="txt">direct <i>h</i>-day log return, one model per <i>h</i></td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="colhead">Top factors by gain <span>latest fit</span></div>
+      <div class="sm" style="font-size:17px;margin-bottom:6px"><b>WTI</b></div>
+      <div><span class="chip">ovx_z</span><span class="chip">t10y3m_d60</span><span class="chip">wti_gap_ma50</span><span class="chip">usdnok_ret20</span><span class="chip">rv_ratio</span></div>
+      <div class="sm" style="font-size:17px;margin:8px 0 6px"><b>Brent</b></div>
+      <div><span class="chip">ovx_z</span><span class="chip">crack_d20</span><span class="chip">brent_gap_ma50</span><span class="chip">rv_ratio</span><span class="chip">crack_z</span></div>
+    </div>
+    <div>
+      <div class="colhead">Self-regularising</div>
+      <div class="sm">Early stopping keeps only <b>1–5 trees</b> beyond +1d, so long-horizon forecasts fall back to no change on their own. Volatility (OVX, realised-vol ratio) matters most in both markets.</div>
+    </div>
+  </div>
+  <div class="foot"><div class="src">From xgbn.ipynb. PCA screening and regime estimation use the training window only; the target is never used for selection.</div><div class="pg"></div></div>
+</section>
+
+<!-- 12 MODEL 3 · XGBOOST · RESULTS -->
+<section class="slide">
+  <div class="kicker"><b>12</b> Model 3 · Machine learning <span class="sec">· results</span></div>
+  <h2>The only repeatable short-horizon edge: WTI, +1 to +5 days</h2>
+  <p class="lede">RMSE below no change up to +5d, significant at +1d and +2d, with hit-rates up to <em>59%</em>. On Brent the trees learn almost nothing.</p>
+
+  <div class="row" style="grid-template-columns:780px 1fr;gap:80px;margin-top:36px">
+    <div>
+      <div class="colhead">WTI · frozen test <span>direction hit-rate by horizon</span></div>
+      <div style="position:relative;height:440px;margin-top:10px">
+        <div style="position:absolute;left:60px;right:0;top:0;height:360px;border-bottom:2px solid var(--ink)">
+          <div style="position:absolute;left:0;right:0;top:54.55%;border-top:2px dashed var(--red)"></div>
+          <div style="position:absolute;right:0;top:calc(54.55% - 28px);font-size:16px;color:var(--red);font-weight:700">coin flip 50%</div>
+          <div id="hitbars" style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(6,1fr);gap:28px;align-items:end;padding:0 20px"></div>
+        </div>
+        <div class="num" style="position:absolute;left:0;top:-10px;font-size:15px;color:var(--mute)">62%</div>
+        <div class="num" style="position:absolute;left:0;top:350px;font-size:15px;color:var(--mute)">40%</div>
+        <div id="hitlabels" class="num" style="position:absolute;left:60px;right:0;top:372px;display:grid;grid-template-columns:repeat(6,1fr);gap:28px;padding:0 20px;text-align:center;font-size:17px;line-height:1.35"></div>
+      </div>
+      <div class="sm" style="margin-top:12px;font-size:18px"><span class="c-teal">■</span> RMSE below no change &nbsp; <span class="c-mute">■</span> not below &nbsp;·&nbsp; row 2: RMSE / RMSE<sub>RW</sub> &nbsp;·&nbsp; <sup class="s">*</sup> DM p &lt; 0.10</div>
+    </div>
+    <div>
+      <div class="colhead">Robustness <span>RMSE / RMSE<sub>RW</sub></span></div>
+      <table class="t" style="font-size:19px">
+        <tr><th></th><th>High vol</th><th>Low vol</th><th>2025</th><th>2026</th><th>Windows &lt; 1</th></tr>
+        <tr><td>WTI +1d</td><td class="g">0.998</td><td class="g">0.996</td><td class="g">0.998</td><td class="g">0.998</td><td>3 of 4</td></tr>
+        <tr><td>WTI +5d</td><td class="g">0.996</td><td class="g">0.987</td><td class="g">0.994</td><td class="g">0.995</td><td>2 of 4</td></tr>
+        <tr><td>Brent +1d</td><td>1.000</td><td>1.000</td><td>1.000</td><td>1.000</td><td>3 of 4</td></tr>
+      </table>
+      <div class="colhead" style="margin-top:30px">Direction quality · WTI</div>
+      <table class="t" style="font-size:19px">
+        <tr><th></th><th>+2d</th><th>+3d</th><th>+5d</th></tr>
+        <tr><td>F1 up / down</td><td>0.62 / 0.54</td><td>0.61 / 0.55</td><td>0.59 / 0.52</td></tr>
+      </table>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:30px">
+        <div class="stat"><div class="v teal" style="font-size:60px">1.16</div><div class="l">Sharpe, WTI +3d rule after costs (1.29 at +5d)</div></div>
+        <div class="stat"><div class="v amber" style="font-size:60px">54%</div><div class="l">Brent +1d hit-rate, but RMSE ratio stays 1.000: too small to trade</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div class="src">Gains hold in both volatility regimes and both years: the WTI edge is not one lucky window. F1 balanced on both sides: the model is not just “always up”.</div><div class="pg"></div></div>
+</section>
+
+<!-- 13 MODEL COMPARISON · ACCURACY -->
+<section class="slide">
+  <div class="kicker"><b>13</b> Model comparison · forecast accuracy</div>
+  <h2>Brent behaves like a martingale; WTI leaks at +1 to +5 days</h2>
+  <p class="lede">RMSE relative to no change, direction hit-rate and ±1σ coverage. 451 origins, no refitting after 2024-12-31.</p>
+
+  <style>.cmp table.t{font-size:21px!important}.cmp table.t td{padding:14px 10px}.cmp th:last-child{text-transform:none}</style>
+  <div class="row cmp" style="grid-template-columns:1fr 1fr;gap:56px;margin-top:36px">
+    <div>
+      <div class="colhead">WTI futures</div>
+      <table class="t">
+        <tr><th>Model</th><th>+1d</th><th>+3d</th><th>+5d</th><th>+20d</th><th>+60d</th><th class="sep">Hit +1</th><th>Hit +3</th><th class="sep">±1σ</th></tr>
+        <tr><td>ARMA-GARCH</td><td>1.000</td><td>0.999</td><td>1.001</td><td>1.000</td><td>1.000</td><td class="sep">51</td><td>50</td><td class="sep">72</td></tr>
+        <tr><td>MS-AR</td><td>1.001</td><td>1.003</td><td>1.004</td><td class="b">1.031</td><td>0.993</td><td class="sep">48</td><td>48</td><td class="sep">67</td></tr>
+        <tr><td>MS-ARX</td><td>1.001</td><td class="b">1.004<sup class="w">†</sup></td><td class="b">1.005<sup class="w">†</sup></td><td>1.004</td><td>1.001</td><td class="sep">47</td><td class="b">43</td><td class="sep">72</td></tr>
+        <tr><td>XGBoost</td><td class="g">0.998<sup class="s">*</sup></td><td class="g">0.992</td><td class="g">0.995</td><td>1.000</td><td>1.000</td><td class="sep">51</td><td class="g">58</td><td class="sep">74</td></tr>
+        <tr class="bench"><td>Historical mean</td><td>1.000</td><td>0.999</td><td>0.999</td><td>0.997</td><td>0.989</td><td class="sep">53</td><td>51</td><td class="sep">–</td></tr>
+        <tr class="bench"><td>Direct AR</td><td>1.000</td><td>0.998</td><td>1.009</td><td>0.997</td><td>0.988</td><td class="sep">52</td><td>50</td><td class="sep">–</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="colhead">Brent futures</div>
+      <table class="t">
+        <tr><th>Model</th><th>+1d</th><th>+3d</th><th>+5d</th><th>+20d</th><th>+60d</th><th class="sep">Hit +1</th><th>Hit +3</th><th class="sep">±1σ</th></tr>
+        <tr><td>ARMA-GARCH</td><td>1.000</td><td>0.999</td><td>1.000</td><td>1.000</td><td>1.000</td><td class="sep">51</td><td>49</td><td class="sep">72</td></tr>
+        <tr><td>MS-AR</td><td>1.004</td><td class="b">1.012</td><td class="b">1.014</td><td class="b">1.011</td><td class="g">0.979</td><td class="sep">48</td><td>48</td><td class="sep">76</td></tr>
+        <tr><td>MS-ARX</td><td>1.000</td><td>1.006</td><td>1.005</td><td>1.002</td><td>0.997</td><td class="sep">46</td><td class="b">44</td><td class="sep">73</td></tr>
+        <tr><td>XGBoost</td><td>1.000</td><td>1.000</td><td>1.000</td><td>1.001</td><td class="b">1.011</td><td class="sep g">54</td><td>51</td><td class="sep">75</td></tr>
+        <tr class="bench"><td>Historical mean</td><td>1.000</td><td>1.000</td><td>1.000</td><td>1.000</td><td>1.001</td><td class="sep">54</td><td>51</td><td class="sep">–</td></tr>
+        <tr class="bench"><td>Direct AR</td><td>1.000</td><td>0.999</td><td>1.000</td><td>1.000</td><td>1.001</td><td class="sep">50</td><td>51</td><td class="sep">–</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:56px;margin-top:44px">
+    <div class="callout"><div class="sm"><b>Only significant edge:</b> XGBoost on WTI, +1d (p = 0.07) and +2d (0.993, p = 0.09, 59% hit).</div></div>
+    <div class="callout amber"><div class="sm"><b>Calibration holds:</b> model bands cover 67–76% of outcomes at +1d against a 68% target.</div></div>
+    <div class="callout red"><div class="sm"><b>Long horizons:</b> on WTI the simple drift benchmarks win at +60d (0.988), as prices trended up.</div></div>
+  </div>
+  <div class="foot"><div class="src"><sup class="s">*</sup> DM p &lt; 0.10 better than no change · <sup class="w">†</sup> DM p &lt; 0.05 worse than no change · ±1σ = coverage at +1d, % · hit-rate in %.</div><div class="pg"></div></div>
+</section>
+
+<!-- 14 MODEL COMPARISON · ECONOMIC VALUE -->
+<section class="slide">
+  <div class="kicker"><b>14</b> Model comparison · economic value</div>
+  <h2>Efficient market: most forecasts earn nothing extra</h2>
+  <p class="lede">One rule for every model: long / short on the +3d forecast if |μ̂| &gt; 0.1σ, else flat; <em>5 bps</em> per unit turnover. Only one of eight model–market pairs beats buy &amp; hold.</p>
+
+  <style>.pnl table.t td{padding:8px 10px}</style>
+  <div class="row pnl" style="grid-template-columns:1fr 1fr;gap:56px;margin-top:30px">
+    <div>
+      <div class="colhead">WTI · +3d rule, net of costs</div>
+      <table class="t" style="font-size:18px">
+        <tr><th>Model</th><th>Total P&amp;L</th><th>Ann. ret</th><th>Sharpe</th><th>Max DD</th><th>Costs</th><th>In mkt</th></tr>
+        <tr><td>ARMA-GARCH</td><td>+0.2%</td><td>+0.1%</td><td>0.09</td><td>−1.3%</td><td>0.0%</td><td>1%</td></tr>
+        <tr><td>MS-AR</td><td>0.0%</td><td>0.0%</td><td>0.13</td><td>−22.3%</td><td>1.7%</td><td>62%</td></tr>
+        <tr><td>MS-ARX</td><td class="c-mute">0.0%</td><td class="c-mute">flat</td><td class="c-mute">–</td><td class="c-mute">0.0%</td><td class="c-mute">0.0%</td><td class="c-mute">0%</td></tr>
+        <tr><td>XGBoost</td><td class="g">+45.1%</td><td class="g">+23.1%</td><td class="g">1.16</td><td class="g">−17.4%</td><td>2.2%</td><td>45%</td></tr>
+        <tr class="bench"><td>Direct AR</td><td>+28.3%</td><td>+14.9%</td><td>0.62</td><td>−20.0%</td><td>4.9%</td><td>100%</td></tr>
+        <tr class="bench"><td>Buy &amp; hold</td><td>+33.3%</td><td>+17.4%</td><td>0.58</td><td class="b">−39.3%</td><td>0.1%</td><td>100%</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="colhead">Brent · +3d rule, net of costs</div>
+      <table class="t" style="font-size:18px">
+        <tr><th>Model</th><th>Total P&amp;L</th><th>Ann. ret</th><th>Sharpe</th><th>Max DD</th><th>Costs</th><th>In mkt</th></tr>
+        <tr><td>ARMA-GARCH</td><td class="c-mute">0.0%</td><td class="c-mute">flat</td><td class="c-mute">–</td><td class="c-mute">0.0%</td><td class="c-mute">0.0%</td><td class="c-mute">0%</td></tr>
+        <tr><td>MS-AR</td><td class="b">−17.7%</td><td class="b">−10.3%</td><td class="b">−0.70</td><td>−24.7%</td><td>0.9%</td><td>16%</td></tr>
+        <tr><td>MS-ARX</td><td class="b">−24.4%</td><td class="b">−14.5%</td><td class="b">−1.01</td><td>−29.1%</td><td>0.4%</td><td>8%</td></tr>
+        <tr><td>XGBoost</td><td class="c-mute">0.0%</td><td class="c-mute">flat</td><td class="c-mute">–</td><td class="c-mute">0.0%</td><td class="c-mute">0.0%</td><td class="c-mute">0%</td></tr>
+        <tr class="bench"><td>Direct AR</td><td>+31.7%</td><td>+16.6%</td><td>0.72</td><td>−24.0%</td><td>7.9%</td><td>100%</td></tr>
+        <tr class="bench"><td>Buy &amp; hold</td><td>+41.6%</td><td>+21.5%</td><td>0.66</td><td class="b">−39.5%</td><td>0.1%</td><td>100%</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="row" style="grid-template-columns:1000px 1fr;gap:56px;margin-top:26px">
+    <div>
+      <div class="colhead">WTI · growth of $1 <span><span class="c-teal">━</span> XGBoost &nbsp;<span class="c-navy">┅</span> Buy &amp; hold &nbsp;<span style="color:#8B6BB8">━</span> MS-AR · shaded: 26 Feb – 6 Mar 2026</span></div>
+      <svg id="eq" viewBox="-60 -10 1130 310" style="width:100%;height:260px"></svg>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr;gap:18px;align-content:start">
+      <div class="callout navy"><div class="sm" style="font-size:19px"><b>4 of 8</b> pairs (almost) never trade: forecasts stay inside the noise band.</div></div>
+      <div class="callout red"><div class="sm" style="font-size:19px"><b>3 of 8</b> earn ≤ 0: regime models trade on trends that do not persist.</div></div>
+      <div class="callout"><div class="sm" style="font-size:19px"><b>XGBoost on WTI:</b> 83% of its log-return came in 7 sessions of one exogenous shock.</div></div>
+    </div>
+  </div>
+  <div class="foot"><div class="src">Frozen test, 451 days, 2025-01-02 → 2026-10-18. 1/<i>h</i> of capital opened daily, held <i>h</i> days. Buy &amp; hold on Brent = always-long historical-mean rule. XGBoost at +5d on WTI: Sharpe 1.29.</div><div class="pg"></div></div>
+</section>
+
+<!-- 15 PIPELINE -->
+<section class="slide">
+  <div class="kicker"><b>15</b> Pipeline</div>
+  <h2>From research notebooks to the inbox, every morning</h2>
+  <p class="lede">GitHub Actions runs unattended. Models are <em>not</em> refit daily: new data flows through saved models; parameters move quarterly.</p>
+
+  <div style="margin-top:46px">
+    <div class="colhead">Daily · 22:45 UTC (06:45 SGT) <span>daily_update.yml</span></div>
+    <div style="display:grid;grid-template-columns:1fr 40px 1fr 40px 1fr 40px 1fr;align-items:stretch">
+      <div style="border:2px solid var(--navy);padding:18px 20px;background:var(--paper)"><div class="num c-teal" style="font-weight:700;font-size:18px">01 · update_data</div><div style="font-size:21px;margin-top:8px;line-height:1.35">Pull last 90 days from Yahoo, FRED, EIA; merge into raw CSVs</div></div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--navy)">→</div>
+      <div style="border:2px solid var(--navy);padding:18px 20px;background:var(--paper)"><div class="num c-teal" style="font-weight:700;font-size:18px">02 · run_daily</div><div style="font-size:21px;margin-top:8px;line-height:1.35">Load saved models, build features, filter regime, forecast μ̂ &amp; σ for <i>h</i> = 1…60</div></div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--navy)">→</div>
+      <div style="border:2px solid var(--navy);padding:18px 20px;background:var(--paper)"><div class="num c-teal" style="font-weight:700;font-size:18px">03 · commit</div><div style="font-size:21px;margin-top:8px;line-height:1.35">Data + append-only <span class="num">forecast_log.csv</span>: an auditable live track record</div></div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--navy)">→</div>
+      <div style="border:2px solid var(--navy);padding:18px 20px;background:var(--navy);color:#fff"><div class="num" style="font-weight:700;font-size:18px;color:var(--amber)">04 · send_email</div><div style="font-size:21px;margin-top:8px;line-height:1.35">Signal, forecast table, fan chart, last 7 days vs actual, track record</div></div>
+    </div>
+
+    <div class="colhead" style="margin-top:44px">Quarterly · 1 Jan / Apr / Jul / Oct <span>quarterly_retrain.yml</span></div>
+    <div style="display:grid;grid-template-columns:1fr 40px 1.4fr 40px 1fr;align-items:stretch">
+      <div style="border:2px dashed var(--navy);padding:18px 20px"><div class="num c-amber" style="font-weight:700;font-size:18px">update_data</div><div style="font-size:21px;margin-top:8px">same as daily</div></div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--navy)">→</div>
+      <div style="border:2px dashed var(--navy);padding:18px 20px"><div class="num c-amber" style="font-weight:700;font-size:18px">train_models</div><div style="font-size:21px;margin-top:8px;line-height:1.35">Re-estimate GARCH, MS-AR and regime parameters, re-select PCA factors, on past data only</div></div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--navy)">→</div>
+      <div style="border:2px dashed var(--navy);padding:18px 20px"><div class="num c-amber" style="font-weight:700;font-size:18px">retrain email</div><div style="font-size:21px;margin-top:8px;line-height:1.35">What changed: variables, parameters, old vs new forecast</div></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:56px;margin-top:44px">
+    <div><div class="colhead">Why quarterly</div><div class="sm">Refit every 21 / 63 / 252 days tested on 2016–2026: 63 vs 21 days moved RMSE by <b>≤ 1.8%</b>, no systematic sign.</div></div>
+    <div><div class="colhead">Plug-in models</div><div class="sm">Each family implements <span class="num">train · predict · backtest</span>; the email builds its columns from whatever is in the log.</div></div>
+    <div><div class="colhead">Monitoring</div><div class="sm">Frozen evaluation refreshes on the 1st of each month; every forecast is logged before its outcome is known.</div></div>
+  </div>
+  <div class="foot"><div class="src">Repository: OilForecastQF · forecast/ (data, features, regime, plugins, reporting) · scripts/ (entry points) · models/*.joblib.</div><div class="pg"></div></div>
+</section>
+
+<!-- 16 DAILY REPORT -->
+<section class="slide">
+  <div class="kicker"><b>16</b> Daily intelligence report</div>
+  <h2>This morning’s email: 22 Oct 2026, data to 21 Oct close</h2>
+  <p class="lede">One panel per benchmark. Forecast price by model and horizon, the GARCH ±1σ range, and a +1d signal graded by the frozen-test track record.</p>
+
+  <div class="row" style="grid-template-columns:1fr 1fr;gap:56px;margin-top:36px">
+    <div>
+      <div class="colhead">Brent · $110.04</div>
+      <table class="t" style="font-size:19px">
+        <tr><th>Model</th><th>+1d</th><th>+5d</th><th>+20d</th><th>+60d</th><th>Signal</th></tr>
+        <tr class="bench"><td>No change</td><td>110.04</td><td>110.04</td><td>110.04</td><td>110.04</td><td>–</td></tr>
+        <tr><td>ARMA-GARCH</td><td>110.02</td><td>110.02</td><td>110.02</td><td>110.02</td><td><span class="tag navy">Hold</span></td></tr>
+        <tr><td>MS-AR</td><td>110.13</td><td>110.39</td><td>111.02</td><td>112.08</td><td><span class="tag navy">Hold</span></td></tr>
+        <tr><td>MS-ARX</td><td>109.90</td><td>110.09</td><td>110.80</td><td>112.71</td><td><span class="tag navy">Hold</span></td></tr>
+        <tr><td>XGBoost</td><td>110.03</td><td>110.07</td><td>109.97</td><td>109.89</td><td><span class="tag navy">Hold</span></td></tr>
+        <tr><td class="c-amber">±1σ GARCH</td><td class="hl-amber">107.8–112.2</td><td class="hl-amber">105.2–115.0</td><td class="hl-amber">100.5–120.5</td><td class="hl-amber">93.2–130.0</td><td></td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="colhead">WTI · $98.07</div>
+      <table class="t" style="font-size:19px">
+        <tr><th>Model</th><th>+1d</th><th>+5d</th><th>+20d</th><th>+60d</th><th>Signal</th></tr>
+        <tr class="bench"><td>No change</td><td>98.07</td><td>98.07</td><td>98.07</td><td>98.07</td><td>–</td></tr>
+        <tr><td>ARMA-GARCH</td><td>98.18</td><td>98.27</td><td>98.27</td><td>98.27</td><td><span class="tag navy">Hold</span></td></tr>
+        <tr><td>MS-AR</td><td>97.95</td><td>97.81</td><td>97.58</td><td>97.95</td><td><span class="tag navy">Hold</span></td></tr>
+        <tr><td>MS-ARX</td><td>98.17</td><td>98.94</td><td>101.90</td><td>110.24</td><td><span class="tag navy">Hold</span></td></tr>
+        <tr><td>XGBoost</td><td>98.07</td><td>98.07</td><td>98.07</td><td>98.05</td><td><span class="tag navy">Hold</span></td></tr>
+        <tr><td class="c-amber">±1σ GARCH</td><td class="hl-amber">95.3–101.1</td><td class="hl-amber">92.2–104.8</td><td class="hl-amber">86.7–111.4</td><td class="hl-amber">79.6–121.4</td><td></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:56px;margin-top:44px;align-items:start">
+    <div style="background:var(--navy);color:#fff;padding:20px 30px"><div style="font-size:15px;letter-spacing:.16em;color:var(--amber);font-weight:700">CONSENSUS · +1D</div><div style="font-size:44px;font-weight:800;margin-top:4px">NEUTRAL</div></div>
+    <div class="sm"><b>Signal rule</b> = the trading rule: BUY / SELL only if |μ̂| &gt; 0.1σ. Today every model sits inside the noise band. LEAN BUY / SELL needs ≥ 2 models agreeing and outnumbering the other side.</div>
+    <div class="sm"><b>Track-record grade</b> comes from the frozen test, not the model: <span class="c-teal">Significant</span> (hit &gt; 50%, one-sided p &lt; 0.05, RMSE &lt; RW) · <span class="c-amber">Suggestive</span> · None yet.</div>
+  </div>
+  <div class="foot"><div class="src">Source: Outputs/latest_forecasts.csv, generated 2026-10-22 00:55 UTC. Bands: price × exp(±σ<sub>GARCH,h</sub>) around the ARMA-GARCH centre.</div><div class="pg"></div></div>
+</section>
+
+<!-- 17 EMAIL ATTACHMENT -->
+<section class="slide">
+  <div class="kicker"><b>17</b> Live demo · the email itself</div>
+  <div style="display:grid;grid-template-columns:520px 1fr;gap:56px;margin-top:30px">
+    <div>
+      <h2 style="margin-top:0">What lands in the inbox</h2>
+      <p class="lede" style="font-size:24px">The actual HTML email, rendered from the pipeline’s dry run. Scroll inside the frame during the talk.</p>
+      <ul class="tight" style="margin-top:26px">
+        <li><b>Signal summary</b> <span class="m">· +1d call per series</span></li>
+        <li><b>Forecast table</b> <span class="m">· every model, every horizon</span></li>
+        <li><b>±1σ range</b> <span class="m">· GARCH band</span></li>
+        <li><b>Fan chart</b> <span class="m">· last 60 days + forecasts</span></li>
+        <li><b>Last 7 days</b> <span class="m">· yesterday’s forecast vs actual</span></li>
+        <li><b>Track record</b> <span class="m">· RMSE vs no change, live</span></li>
+        <li><b>Frozen-model check</b> <span class="m">· rolling forecasts, equity</span></li>
+      </ul>
+      <div style="margin-top:28px"><a href="email/preview.html" target="_blank" style="font-size:20px;font-weight:700;color:var(--teal);text-decoration:none;border-bottom:2px solid var(--teal)">Open full email in a new tab ↗</a></div>
+    </div>
+    <div style="height:860px;border:1px solid var(--rule);background:#fff;box-shadow:0 18px 40px rgba(14,26,43,.12);position:relative;overflow:hidden">
+      <div style="height:44px;background:#EDEBE5;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:10px;padding:0 16px;font-size:16px;color:var(--slate)">
+        <span style="width:12px;height:12px;border-radius:50%;background:#E0675A"></span><span style="width:12px;height:12px;border-radius:50%;background:#E8B33F"></span><span style="width:12px;height:12px;border-radius:50%;background:#5FBF6A"></span>
+        <span style="margin-left:14px"><b>Oil forecast</b> · daily report · from OilForecastQF bot</span>
+      </div>
+      <iframe src="email/preview.html" title="Daily email preview" style="width:100%;height:calc(100% - 44px);border:0;display:block"></iframe>
+    </div>
+  </div>
+  <div class="foot"><div class="src">email/preview.html is generated by <span class="num">scripts/send_email.py --dry-run</span> (identical HTML and charts, nothing sent). Keep the email/ folder next to this deck.</div><div class="pg"></div></div>
+</section>
+
+<!-- 18 STREAMLIT -->
+<section class="slide">
+  <div class="kicker"><b>18</b> Sharing the results · web app</div>
+  <h2>Oil Forecast Monitor: the same numbers, one link</h2>
+  <p class="lede">A Streamlit app on Streamlit Community Cloud reads the files the daily bot commits. Every push <em>redeploys the site</em>, so it updates with the 06:45 SGT email and needs no inbox or Python.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:32px;margin-top:48px">
+    <div class="card" style="border-top:6px solid var(--teal)">
+      <div class="num c-teal" style="font-weight:700;font-size:17px">HOME</div>
+      <div style="font-size:28px;font-weight:800;color:var(--navy);margin-top:6px">Today</div>
+      <ul class="tight" style="margin-top:12px"><li>Latest forecasts by model &amp; horizon</li><li>±1σ range</li><li>1-day-ahead forecast vs what happened</li></ul>
+    </div>
+    <div class="card" style="border-top:6px solid var(--navy)">
+      <div class="num c-navy" style="font-weight:700;font-size:17px">TRACK RECORD</div>
+      <div style="font-size:28px;font-weight:800;color:var(--navy);margin-top:6px">Does it work?</div>
+      <ul class="tight" style="margin-top:12px"><li>Accuracy vs no change</li><li>Are the bands honest?</li><li>Market conditions</li><li>What a trader would have made</li><li>Live scorecard</li></ul>
+    </div>
+    <div class="card" style="border-top:6px solid var(--amber)">
+      <div class="num c-amber" style="font-weight:700;font-size:17px">EXPLORE</div>
+      <div style="font-size:28px;font-weight:800;color:var(--navy);margin-top:6px">Dig in</div>
+      <ul class="tight" style="margin-top:12px"><li>Price history</li><li>Forecast vs actual, any two models</li><li>CSV downloads</li></ul>
+    </div>
+    <div class="card" style="border-top:6px solid var(--slate)">
+      <div class="num" style="font-weight:700;font-size:17px;color:var(--slate)">ABOUT</div>
+      <div style="font-size:28px;font-weight:800;color:var(--navy);margin-top:6px">Method</div>
+      <ul class="tight" style="margin-top:12px"><li>The models &amp; last retrain date</li><li>How we evaluate</li><li>Limits to keep in mind</li></ul>
+    </div>
+  </div>
+
+  <div style="margin-top:54px">
+    <div class="colhead">One source of truth</div>
+    <div style="display:grid;grid-template-columns:1fr 40px 1fr 40px 1fr 40px 1fr;align-items:center;font-size:21px">
+      <div class="card" style="text-align:center"><b>GitHub Actions</b><div class="sm" style="font-size:17px">daily run</div></div>
+      <div style="text-align:center;font-size:30px;color:var(--navy)">→</div>
+      <div class="card" style="text-align:center"><b>forecast_log.csv</b><div class="sm" style="font-size:17px">committed to main</div></div>
+      <div style="text-align:center;font-size:30px;color:var(--navy)">→</div>
+      <div class="card" style="text-align:center;background:var(--navy);color:#fff;border-color:var(--navy)"><b>Email</b><div style="font-size:17px;color:rgba(255,255,255,.75)">to the team</div></div>
+      <div style="text-align:center;font-size:30px;color:var(--navy)">+</div>
+      <div class="card" style="text-align:center;background:var(--teal);color:#fff;border-color:var(--teal)"><b>Streamlit app</b><div style="font-size:17px;color:rgba(255,255,255,.85)">public link</div></div>
+    </div>
+  </div>
+  <div class="foot"><div class="src">app/Home.py · app/pages/1_Track_record.py · 2_Explore.py · 3_About.py. Deployed from the OilForecastQF repo, branch main.</div><div class="pg"></div></div>
+</section>
+
+<!-- 19 CLOSING -->
+<section class="slide dark">
+  <div class="kicker"><b>19</b> Conclusions</div>
+  <div style="font-size:64px;font-weight:800;letter-spacing:-.025em;line-height:1.08;margin-top:40px;max-width:1600px">Oil is moved by shocks no model sees coming. The market prices the rest, so the edge is narrow.</div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:48px;margin-top:70px">
+    <div style="border-top:3px solid #F08A76;padding-top:18px"><div class="num" style="font-size:56px;font-weight:700;color:#F08A76">53%</div><div style="font-size:22px;line-height:1.4;margin-top:12px;color:rgba(255,255,255,.85)"><b style="color:#fff">Exogenous shocks</b>: 5% of days carry over half of Brent’s return variance.</div></div>
+    <div style="border-top:3px solid var(--amber);padding-top:18px"><div class="num" style="font-size:56px;font-weight:700;color:var(--amber)">≈1.000</div><div style="font-size:22px;line-height:1.4;margin-top:12px;color:rgba(255,255,255,.85)"><b style="color:#fff">Efficient market</b>: no model beats no change on Brent at any horizon.</div></div>
+    <div style="border-top:3px solid #5FD3C1;padding-top:18px"><div class="num" style="font-size:56px;font-weight:700;color:#5FD3C1">1 of 8</div><div style="font-size:22px;line-height:1.4;margin-top:12px;color:rgba(255,255,255,.85)"><b style="color:#fff">Economic value</b>: only XGBoost on WTI beats buy &amp; hold (Sharpe 1.16 vs 0.58).</div></div>
+    <div style="border-top:3px solid #fff;padding-top:18px"><div class="num" style="font-size:56px;font-weight:700">67–76%</div><div style="font-size:22px;line-height:1.4;margin-top:12px;color:rgba(255,255,255,.85)"><b style="color:#fff">Where models help</b>: calibrated uncertainty, not point forecasts.</div></div>
+  </div>
+
+  <div style="position:absolute;left:104px;right:104px;bottom:120px;display:grid;grid-template-columns:1.6fr 1fr;gap:80px;align-items:end">
+    <div style="font-size:20px;line-height:1.5;color:rgba(255,255,255,.65)"><b style="color:rgba(255,255,255,.9)">Limitations.</b> Some design choices were made after seeing post-2024 data. Notebook settings were tuned on Brent and applied to WTI unchanged. Spot prices arrive about a week late, and Brent spot and futures diverged sharply in 2026. XGBoost’s P&amp;L rests on one shock.</div>
+    <div style="text-align:right"><div style="font-size:80px;font-weight:800;letter-spacing:-.03em">Thank you</div><div style="font-size:24px;color:var(--amber);margin-top:4px;letter-spacing:.12em;font-weight:700">QUESTIONS</div></div>
+  </div>
+  <div class="foot"><div class="src">All figures: frozen-model evaluation (cutoff 2024-12-31, 451 origins) and live pipeline output, Oct 2026.</div><div class="pg"></div></div>
+</section>
+
+</div></div>
+<div id="hud">← → to navigate · P to print</div>
+
+<script src="eda-data.js"></script>
+<script>
+const NS='font-family="Menlo,monospace"';
+
+// ---- slide 03: Brent weekly price with shock annotations ----
+(function(){
+  if(!window.EDA) return;
+  const v=EDA.bw.v, t0=new Date(EDA.bw.start), n=v.length, W=1080, H=480;
+  const lo=0, hi=Math.ceil(Math.max(...v)/20)*20+20;
+  const X=i=>(i/(n-1)*W), Y=p=>(H-(p-lo)/(hi-lo)*H);
+  const wk=d=>Math.round((new Date(d)-t0)/(7*864e5));
+  let g='';
+  for(let p=0;p<=hi;p+=20){g+=`<line x1="0" x2="${W}" y1="${Y(p)}" y2="${Y(p)}" stroke="${p===0?'#0E1A2B':'#E7E4DC'}"/><text x="-12" y="${Y(p)+6}" text-anchor="end" font-size="17" fill="#8A93A3" ${NS}>${p}</text>`;}
+  for(let y=2016;y<=2026;y++){const i=wk(y+'-01-01');if(i>=0)g+=`<text x="${X(i)}" y="${H+28}" text-anchor="middle" font-size="17" fill="#4A5568" ${NS}>${y}</text>`;}
+  g+=`<polyline fill="none" stroke="#13294B" stroke-width="2.5" stroke-linejoin="round" points="${v.map((p,i)=>X(i).toFixed(1)+','+Y(p).toFixed(1)).join(' ')}"/>`;
+  // [date, label, move, label price level, text anchor, label x offset]
+  const ann=[["2019-09-16","Abqaiq attack","+13.6%",95,'middle',0,'#0E9E8A'],["2020-03-09","OPEC+ price war · COVID","−27.6%",42,'end',-24,'#C0432F'],["2020-04-21","WTI below zero","−28.0%",18,'start',24,'#C0432F'],["2022-03-09","Russia–Ukraine","−14.1% (after spike)",148,'middle',0,'#C0432F'],["2026-04-01","1 Apr 2026","−15.7%",148,'end',0,'#C0432F'],["2026-07-27","27 Jul 2026","−10.9%",30,'end',0,'#C0432F']];
+  ann.forEach(([d,lab,mv,lp,anchor,dx,c])=>{const i=Math.min(n-1,wk(d)),x=X(i),y=Y(v[i]),ly=Y(lp),side=dx!==0;
+    if(side)g+=`<line x1="${x}" x2="${x+dx*0.6}" y1="${y}" y2="${ly-4}" stroke="${c}" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+    else g+=`<line x1="${x}" x2="${x}" y1="${y}" y2="${ly<y?ly+12:ly-34}" stroke="${c}" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+    g+=`<circle cx="${x}" cy="${y}" r="6" fill="${c}"/>`;
+    g+=`<text x="${x+dx}" y="${ly-14}" text-anchor="${anchor}" font-size="18" font-weight="700" fill="#0E1A2B">${lab}</text><text x="${x+dx}" y="${ly+6}" text-anchor="${anchor}" font-size="17" fill="${c}" font-weight="700" ${NS}>${mv}</text>`;});
+  document.getElementById('shock').innerHTML=g;
+})();
+
+// ---- slide 04: Brent spot vs futures, with daily return gap ----
+(function(){
+  if(!window.EDA) return;
+  const e=EDA.brent, n=e.d.length, W=1080, H1=330, top2=380, H2=150;
+  const all=e.f.concat(e.s), lo=Math.floor(Math.min(...all)/20)*20, hi=Math.ceil(Math.max(...all)/20)*20;
+  const X=i=>(i/(n-1)*W), Y=p=>(H1-(p-lo)/(hi-lo)*H1);
+  const gap=e.d.map((_,i)=>i?100*(Math.log(e.f[i]/e.f[i-1])-Math.log(e.s[i]/e.s[i-1])):0);
+  const gm=Math.max(6,Math.ceil(Math.max(...gap.map(Math.abs)))), G=v=>top2+H2/2-v/gm*(H2/2);
+  let g='';
+  for(let p=lo;p<=hi;p+=20){g+=`<line x1="0" x2="${W}" y1="${Y(p)}" y2="${Y(p)}" stroke="#E7E4DC"/><text x="-12" y="${Y(p)+6}" text-anchor="end" font-size="17" fill="#8A93A3" ${NS}>${p}</text>`;}
+  let last='';e.d.forEach((d,i)=>{const m=d.slice(0,7);if(m!==last&&(+d.slice(5,7))%2===0){g+=`<text x="${X(i)}" y="${top2+H2+30}" text-anchor="middle" font-size="16" fill="#4A5568" ${NS}>${new Date(d).toLocaleString('en',{month:'short'})} ${d.slice(2,4)}</text>`;}last=m;});
+  const line=(a,c,w)=>`<polyline fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" points="${a.map((p,i)=>X(i).toFixed(1)+','+Y(p).toFixed(1)).join(' ')}"/>`;
+  g+=line(e.s,'#0E9E8A',3)+line(e.f,'#13294B',2.5);
+  g+=`<text x="10" y="${H1-12}" font-size="19" font-weight="700" fill="#0E9E8A">━ Spot (FRED)</text><text x="170" y="${H1-12}" font-size="19" font-weight="700" fill="#13294B">━ Front-month futures (Yahoo)</text>`;
+  g+=`<line x1="0" x2="${W}" y1="${G(0)}" y2="${G(0)}" stroke="#0E1A2B"/><line x1="0" x2="${W}" y1="${G(3)}" y2="${G(3)}" stroke="#E3A21A" stroke-dasharray="5 4"/><line x1="0" x2="${W}" y1="${G(-3)}" y2="${G(-3)}" stroke="#E3A21A" stroke-dasharray="5 4"/>`;
+  g+=`<text x="-12" y="${G(3)+6}" text-anchor="end" font-size="15" fill="#B27A00" ${NS}>+3%</text><text x="-12" y="${G(-3)+6}" text-anchor="end" font-size="15" fill="#B27A00" ${NS}>−3%</text>`;
+  const bw=Math.max(1.5,W/n*0.7);
+  gap.forEach((v,i)=>{if(!i)return;const y0=G(0),y1=G(v);g+=`<rect x="${(X(i)-bw/2).toFixed(1)}" y="${Math.min(y0,y1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.abs(y1-y0).toFixed(1)}" fill="${Math.abs(v)>3?'#C0432F':'#8A93A3'}"/>`;});
+  document.getElementById('spotfut').innerHTML=g;
+})();
+
+// ---- slide 08: ARMA-GARCH coverage bars ----
+(function(){
+  const hz=["+1","+2","+3","+5","+10","+20","+40","+60"], b=[72.1,71.6,69.3,70.5,70.8,70.6,70.6,70.4], w=[72.1,70.0,69.7,68.2,69.0,74.5,70.4,71.2];
+  const lo=50,hi=85,H=330,Y=v=>(v-lo)/(hi-lo)*100;
+  let h=`<div style="position:relative;height:${H}px;margin-left:44px;border-bottom:2px solid var(--ink)">`;
+  h+=`<div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,1fr);gap:16px;align-items:end;padding:0 8px">`;
+  hz.forEach((_,i)=>{h+=`<div style="display:flex;gap:4px;align-items:end;height:100%"><div title="Brent" style="flex:1;height:${Y(b[i])}%;background:var(--navy)"></div><div title="WTI" style="flex:1;height:${Y(w[i])}%;background:var(--teal)"></div></div>`;});
+  h+=`</div>`;
+  h+=`<div style="position:absolute;left:0;right:0;bottom:${Y(68)}%;border-top:2px dashed var(--red)"></div><div style="position:absolute;right:0;bottom:calc(${Y(80)}%);font-size:16px;color:var(--red);font-weight:700;background:var(--bg);padding:0 6px">- - 68% target</div>`;
+  h+=`<div class="num" style="position:absolute;left:-44px;top:-8px;font-size:15px;color:var(--mute)">85%</div><div class="num" style="position:absolute;left:-44px;bottom:-8px;font-size:15px;color:var(--mute)">50%</div></div>`;
+  h+=`<div class="num" style="margin-left:44px;display:grid;grid-template-columns:repeat(8,1fr);gap:16px;padding:8px 8px 0;text-align:center;font-size:16px;font-weight:700">${hz.map(x=>`<div>${x}d</div>`).join('')}</div>`;
+  h+=`<div class="sm" style="font-size:17px;margin-top:10px"><span class="c-navy">■</span> Brent &nbsp; <span class="c-teal">■</span> WTI</div>`;
+  document.getElementById('covbars').innerHTML=h;
+})();
+
+// ---- slide 12: WTI XGBoost hit-rate bars ----
+(function(){
+  const d=[["+1d",51,"0.998",1,1],["+2d",59,"0.993",1,1],["+3d",58,"0.992",1,0],["+5d",56,"0.995",1,0],["+20d",50,"1.000",0,0],["+60d",43,"1.000",0,0]];
+  const bars=document.getElementById('hitbars'), labs=document.getElementById('hitlabels');
+  d.forEach(([h,v,r,good,sig])=>{
+    const pct=(v-40)/22*100, col=good?'var(--teal)':'#B9BFC9';
+    bars.insertAdjacentHTML('beforeend',`<div style="position:relative;height:${pct}%;background:${col}"><div class="num" style="position:absolute;top:10px;left:0;right:0;text-align:center;font-size:24px;font-weight:700;color:${good?'#fff':'var(--ink)'}">${v}%</div></div>`);
+    labs.insertAdjacentHTML('beforeend',`<div><b>${h}</b><br><span style="color:${good?'#06705F':'var(--mute)'}">${r}${sig?'<sup class="s">*</sup>':''}</span></div>`);
+  });
+})();
+
+// ---- slide 10: RMSE ratio ranges across sub-windows ----
+(function(){
+  const lo=0.85, hi=1.75, x=v=>((v-lo)/(hi-lo)*100).toFixed(2)+'%';
+  const rows=[["XGBoost +5d",.983,1.014,.995,'var(--teal)'],["ARMA-GARCH +20d",.995,1.002,1.000,'var(--navy)'],["MS-AR +5d",.988,1.038,1.004,'var(--red)'],["MS-AR +20d",.984,1.383,1.031,'var(--red)'],["MS-AR +60d",.902,1.560,.993,'var(--red)']];
+  const el=document.getElementById('ranges');
+  let h=`<div style="position:relative;margin-left:220px;height:${rows.length*58+40}px">`;
+  [0.9,1.0,1.2,1.4,1.6].forEach(t=>{h+=`<div style="position:absolute;top:0;bottom:30px;left:${x(t)};border-left:${t===1?'2px solid var(--ink)':'1px solid var(--rule)'}"></div><div class="num" style="position:absolute;bottom:0;left:${x(t)};transform:translateX(-50%);font-size:15px;color:var(--slate)">${t.toFixed(1)}</div>`;});
+  rows.forEach(([n,a,b,c,col],i)=>{const y=i*58+14;
+    h+=`<div style="position:absolute;left:-220px;width:205px;top:${y-4}px;font-size:19px;font-weight:600;text-align:right">${n}</div>`;
+    h+=`<div style="position:absolute;top:${y+8}px;left:${x(a)};width:calc(${x(b)} - ${x(a)});height:8px;background:${col};opacity:.35"></div>`;
+    h+=`<div style="position:absolute;top:${y+2}px;left:${x(c)};width:20px;height:20px;margin-left:-10px;border-radius:50%;background:${col}"></div>`;
+    h+=`<div class="num" style="position:absolute;top:${y-2}px;left:calc(${x(b)} + 12px);font-size:15px;color:var(--slate);white-space:nowrap">${a.toFixed(3)}–${b.toFixed(3)}</div>`;
+  });
+  el.innerHTML=h+'</div><div class="sm" style="font-size:16px;margin-top:6px">bar = best to worst sub-window · dot = full test</div>';
+})();
+
+// ---- slide 14: WTI equity curves (every 3rd trading day, net of 5 bps) ----
+(function(){
+  const S={
+    xgb:[1,1,1,1,1,1,1,1.002,1.011,1.024,1.03,1.041,1.049,1.058,1.049,1.05,1.05,1.052,1.046,1.042,1.042,0.993,1.012,0.998,1.032,1.019,1.011,0.966,0.963,0.995,1.025,1.025,1.025,1.03,1.047,1.061,1.087,1.113,1.15,1.071,1.085,1.084,1.084,1.084,1.084,1.084,1.084,1.084,1.084,1.062,1.062,1.062,1.062,1.062,1.062,1.066,1.066,1.066,1.066,1.066,1.066,1.044,1.047,1.047,1.028,1.071,1.07,1.07,1.072,1.08,1.079,1.087,1.074,1.102,1.102,1.102,1.104,1.105,1.113,1.124,1.129,1.138,1.138,1.139,1.14,1.143,1.108,1.104,1.104,1.144,1.161,1.167,1.162,1.153,1.153,1.152,1.132,1.295,1.521,1.542,1.542,1.542,1.542,1.542,1.542,1.542,1.542,1.542,1.542,1.542,1.542,1.542,1.542,1.542,1.542,1.542,1.542,1.543,1.599,1.611,1.622,1.523,1.445,1.347,1.362,1.343,1.417,1.491,1.508,1.508,1.508,1.492,1.468,1.44,1.44,1.44,1.44,1.44,1.44,1.44,1.44,1.44,1.467,1.451,1.451,1.451,1.451,1.451,1.451,1.451,1.451],
+    msar:[1.004,0.996,1.071,1.075,1.06,1.042,1.036,1.035,1.011,1.016,1.023,1.003,0.977,0.974,0.945,0.945,0.958,0.958,0.985,0.997,1.015,0.907,0.901,0.904,0.904,0.904,0.904,0.904,0.904,0.904,0.904,0.904,0.904,0.913,0.923,0.935,0.959,1.053,1.05,1.081,1.081,1.081,1.088,1.064,1.065,1.073,1.04,1.063,1.104,1.055,1.055,1.034,1.047,1.048,1.044,1.056,1.048,1.034,1.035,1.057,1.034,1.072,1.029,1.01,1.033,0.979,0.974,0.977,1.041,1.039,1.042,1.014,1.042,1.008,0.998,0.988,0.983,0.989,0.988,0.967,0.928,0.951,0.979,0.973,0.979,0.969,1.026,0.996,1.001,1.001,1.001,1.001,1.001,1.001,1.001,1.001,1,1.098,0.951,1.002,0.966,0.947,0.947,0.905,0.905,0.867,0.918,0.934,0.934,0.912,0.912,0.926,0.946,0.947,0.947,0.947,0.947,0.947,0.941,0.943,0.943,0.943,0.943,0.943,0.943,0.943,0.943,0.943,0.94,0.94,0.949,0.986,1.002,1.002,0.997,1.005,1.005,0.997,0.986,0.986,0.986,0.986,0.974,0.992,0.992,0.992,0.992,0.992,0.992,0.992,1],
+    bh:[1.011,1.002,1.077,1.075,1.031,1,0.994,0.994,0.97,0.975,0.982,0.962,0.938,0.934,0.907,0.905,0.918,0.918,0.945,0.956,0.973,0.847,0.852,0.841,0.884,0.851,0.848,0.81,0.808,0.834,0.863,0.857,0.836,0.845,0.854,0.866,0.888,0.997,1.027,0.88,0.895,0.922,0.928,0.91,0.909,0.92,0.892,0.912,0.947,0.891,0.873,0.856,0.867,0.868,0.864,0.875,0.868,0.856,0.857,0.875,0.856,0.888,0.852,0.832,0.855,0.813,0.785,0.79,0.841,0.827,0.834,0.812,0.834,0.821,0.812,0.804,0.8,0.806,0.805,0.787,0.755,0.774,0.798,0.792,0.797,0.789,0.836,0.812,0.811,0.853,0.891,0.89,0.88,0.859,0.891,0.906,0.891,1.019,1.242,1.192,1.278,1.314,1.262,1.362,1.368,1.544,1.32,1.248,1.225,1.31,1.366,1.393,1.3,1.34,1.383,1.473,1.32,1.215,1.281,1.237,1.23,1.104,1.047,0.961,0.967,0.939,1.005,1.068,1.079,1.161,1.221,1.154,1.098,1.056,1.137,1.126,1.173,1.162,1.142,1.233,1.25,1.401,1.446,1.371,1.26,1.266,1.269,1.222,1.255,1.3,1.333]
+  };
+  const W=1000,H=260,lo=0.7,hi=1.7,X=i=>(i/150*W).toFixed(1),Y=v=>((hi-v)/(hi-lo)*H).toFixed(1);
+  let g='';
+  g+=`<rect x="640" y="0" width="18" height="${H}" fill="#FBEFD3"/>`;
+  [0.8,1.0,1.2,1.4,1.6].forEach(v=>{g+=`<line x1="0" x2="${W}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v===1?'#0E1A2B':'#E7E4DC'}" stroke-width="${v===1?1.5:1}"/><text x="-12" y="${+Y(v)+6}" text-anchor="end" font-size="20" fill="#8A93A3" ${NS}>${v.toFixed(1)}</text>`;});
+  [["Jan 25",0],["Apr",135.6],["Jul",273.3],["Oct",417.8],["Jan 26",560],["Apr",695.6],["Jul",833.3],["Oct",975.6]].forEach(([t,x])=>{g+=`<text x="${x}" y="${H+32}" text-anchor="middle" font-size="20" fill="#4A5568" ${NS}>${t}</text>`;});
+  const line=(a,c,w,dash)=>`<polyline fill="none" stroke="${c}" stroke-width="${w}" ${dash?'stroke-dasharray="7 5"':''} stroke-linejoin="round" points="${a.map((v,i)=>X(i)+','+Y(v)).join(' ')}"/>`;
+  g+=line(S.msar,'#8B6BB8',3)+line(S.bh,'#13294B',3,1)+line(S.xgb,'#0E9E8A',5);
+  g+=`<text x="${W+10}" y="${+Y(1.451)+7}" font-size="24" font-weight="700" fill="#0E9E8A" ${NS}>1.45</text>`;
+  g+=`<text x="${W+10}" y="${+Y(1.333)+7}" font-size="24" font-weight="700" fill="#13294B" ${NS}>1.33</text>`;
+  g+=`<text x="${W+10}" y="${+Y(1.0)+7}" font-size="24" font-weight="700" fill="#8B6BB8" ${NS}>1.00</text>`;
+  document.getElementById('eq').innerHTML=g;
+})();
+
+// ---- navigation, page numbers, scaling ----
+(function(){
+  const slides=[...document.querySelectorAll('.slide')], deck=document.getElementById('deck'), N=slides.length;
+  slides.forEach((s,k)=>{const pg=s.querySelector('.pg');if(pg)pg.textContent=String(k+1).padStart(2,'0')+' / '+N;});
+  let i=Math.max(0,Math.min(N-1,(parseInt(location.hash.slice(1))||1)-1));
+  const show=n=>{i=Math.max(0,Math.min(N-1,n));slides.forEach((s,k)=>s.classList.toggle('active',k===i));history.replaceState(null,'','#'+(i+1));};
+  const fit=()=>{deck.style.transform=`scale(${Math.min(innerWidth/1920,innerHeight/1080)})`;};
+  addEventListener('resize',fit);
+  addEventListener('keydown',e=>{
+    if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();show(i+1);}
+    else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(e.key)){e.preventDefault();show(i-1);}
+    else if(e.key==='Home')show(0); else if(e.key==='End')show(N-1);
+    else if(e.key==='p'||e.key==='P')window.print();
+  });
+  document.getElementById('stage').addEventListener('click',e=>{if(e.target.closest('a,iframe'))return;show(e.clientX>innerWidth/2?i+1:i-1);});
+  fit();show(i);
+})();
+</script>
+</body>
+</html>
