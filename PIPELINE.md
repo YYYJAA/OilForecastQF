@@ -42,70 +42,23 @@ equal-weight combination.
 | Plugin | Models | Series | Notes |
 |---|---|---|---|
 | `lasso_regime` | No change, regime-dependent LASSO (shrunk by half; calm / turbulent interactions) | Brent and WTI futures | from `lasson.ipynb`; replaces the earlier `lasso_family`; band = standardised-error spread x today's volatility |
-| `xgboost` | XGBoost (depth-2 trees, PCA variable selection, shrunk by half) | Brent and WTI futures | from `xgbn.ipynb`; needs `xgboost`; same band construction |
+| `xgboost` | XGBoost (depth-3 trees, PCA variable selection plus P(turbulent) and a regime label, shrunk by half) | Brent and WTI futures | from `xgb_1030.ipynb` (earlier `xgbn.ipynb`); needs `xgboost`; calendar = days both futures trade; band = standardised-error spread x today's volatility |
 | `arma_garch` | ARMA-GARCH (MA(2) mean, GARCH(1,1)-t) | Brent and WTI futures | from `gp_arma_garch.ipynb`; forecasts about no change, its value is the volatility band (all horizons) |
-| `msar` | MS-AR, MS-ARX (2-regime Markov-switching AR; MS-ARX adds the other benchmark's lagged price change, DXY return and Brent-WTI spread; forecast scaled by 0.25) | Brent and WTI futures | from `msar.ipynb`; needs statsmodels >= 0.15; band = simulated sd |
+| `msar` | MS-AR, MS-ARX (2-regime Markov-switching AR on a common Brent/WTI calendar, 1,260-day window; MS-ARX adds the other benchmark's % return, DXY return and Brent-WTI spread; both forecasts shrunk by half) | Brent and WTI futures | from `msar_common.ipynb` (replaces `msar.ipynb`); needs statsmodels >= 0.15; band = simulated sd |
 
-## MS-AR research notebook
+## MS-AR notebooks
 
-`msar.ipynb` sits alongside `gp_arma_garch.ipynb` and `lasso.ipynb`. It contains all
-MS-AR/MS-ARX model code, configuration, backtesting, numerical checks, tables and
-plots. Open it from `OilForecastQF` and run all cells. It uses
-`Data/raw/yahoo_daily.csv` and saves evidence under `Outputs/msar/baseline/` and
-`Outputs/msar/extended/`.
-
-The default run loads existing results and verifies them. Set `RERUN_MODEL = True`
-in the setup cell to refit the baseline and follow-up in order after updating the
-source CSV. MS-AR and MS-ARX **are** registered as the `msar` plugin (`forecast/plugins/msar.py`, a port of the
-notebook's estimation, exact-mean recursion and simulation; its 2026-10-09 forecasts match the notebook's saved
-results to three decimals). The notebook's window and mean-weight choices were selected on 2022-2023 validation and are
-fixed in `forecast/config.py` (`msar_models`); the quarterly retrain only re-estimates the regime and AR parameters.
-Re-selecting the specification still means re-running the notebook with `RERUN_MODEL = True`. The notebook's own
-2024+ test comparison (reused, exploratory) found both models no better than no change. Earlier implementation files are
-archived outside the repository at `../tmp/msar_before_notebook_only/`.
-
-## Frozen-model evaluation and economic value (`scripts/frozen_eval.py`)
-Answers: "how would these models have done if they stopped learning on a fixed date?" (config: `frozen_cutoff`,
-default 2024-12-31).
-* Every plugin is trained **only on data up to the cutoff**; from the next day on, the frozen parameters are applied
-  daily to the data known on each date (features and regime filter continue, nothing is refitted).
-* Forecasts since the cutoff are scored against outcomes: RMSE vs no change, direction, +-1 sd band coverage,
-  Diebold-Mariano p-value (HAC, h-1 lags).
-* **Economic value:** a simple rule turns each forecast into a position: long if the forecast return is above
-  `trade_band` x the 1-sd of the h-day return, short if below minus that, otherwise flat. Overlapping tranches (each day
-  opens 1/h of capital and holds it h days), `cost_bps` per unit of turnover. Reported: annualised return, volatility,
-  Sharpe, max drawdown, turnover, costs paid, days in market, against buy and hold.
-* Evaluated horizons: 1, 2, 3, 5, 10, 20, 40, 60 days (tables). The charts are short-horizon and rolling: a
-  `frozen_chart_horizon`-day (3) forecast is made every day and drawn against what happened, with the ARMA-GARCH band
-  and how often the realised move fell inside it.
-* Also scored against two benchmarks that are NOT production models: historical mean and a direct AR (both estimated on
-  data up to the cutoff). Metrics per model and horizon: RMSE / MAE / MAPE, direction hit-rate, precision / recall / F1,
-  Diebold-Mariano p-value, +-1 sd band coverage; robustness by volatility regime (threshold = median trailing
-  volatility up to the cutoff), by calendar year and by four consecutive windows of the test period.
-* **Project outputs** (`Outputs/frozen_eval/`): `report.html` (standalone report with every table and chart),
-  `registration_accuracy.csv` / `registration_robustness.csv` / `registration_summary.md` (spreadsheet-ready), plus the raw
-  `metrics.csv`, `trading.csv`, `robustness.csv`. The e-mail keeps its shorter "Frozen-model check" section (rolling
-  chart, accuracy, direction, band coverage, trading rule); MAPE, F1, benchmarks and the robustness tables are in the
-  report only. The signal summary also reads its track record from `metrics.csv`.
-
-## Signal summary (top of the e-mail, `forecast/signals.py`)
-For `signal_horizon` (1) trading day (the horizon where the frozen test shows the best records; skill fades quickly beyond it): BUY / SELL if a model's expected move exceeds `trade_band` x its 1-sd noise
-(the same rule as the trading test), else HOLD. **The track record comes from the frozen test, not from the model:**
-Significant = direction right significantly more than 50% (one-sided p < 0.05, using n / h effective observations because
-h-day returns overlap) AND RMSE below no change; Suggestive = p < 0.10, or hit-rate > 55% with RMSE below no change;
-None yet otherwise. The consensus is LEAN BUY / LEAN SELL when at least two models agree and outnumber the other side,
-otherwise NEUTRAL.
-* Runs on the 1st of each month, when missing, or on demand ("run_frozen_eval" in the manual-run dialog) - about
-  1-2 minutes.
-* This is a deliberately stale model (skill plus ageing). It is not the production model.
-* Caveat for the report: window / weight choices come from the notebooks' own validation (all before 2025), but some
-  design decisions were made after seeing later data, so the test is clean for estimation but not pristine.
+`msar_common.ipynb` is the current specification and is what the `msar` plugin (`forecast/plugins/msar.py`) implements; the plugin's
+forecasts match the notebook's own functions to the last digit at the same origin. It uses a common Brent / WTI calendar, a 1,260-day
+window for both models, a 0.5 shrink and 2,000 simulated paths (config: `msar_*`). The earlier `msar.ipynb` (63-day refits,
+756-day window and 0.25 weight for MS-ARX) is kept for reference only. The quarterly retrain re-estimates the regime and AR
+parameters; between retrains the regime filter is run forward with fixed parameters.
 
 ### Brent and WTI
-`cfg.targets` (default Brent and WTI futures) lists the series the LASSO-family and MS-AR plugins forecast; ARMA-GARCH
+`cfg.targets` (default Brent and WTI futures) lists the series the regime LASSO, XGBoost and MS-AR plugins forecast; ARMA-GARCH
 uses `cfg.arma_garch_targets`. Every model has its own fit per series and the e-mail shows one panel per series.
-* The notebooks' settings (LASSO penalties are re-picked by cross-validation, but the window of 1260 days, the MS-AR
-  window and the 0.25 mean weight, the HMM and the feature set) were chosen on **Brent**. They are applied to WTI
+* The notebooks' settings (LASSO penalties are re-picked by cross-validation, but the window of 1260 days, the shrink
+  weights, the regime model and the feature set) were chosen on **Brent**. They are applied to WTI
   unchanged; they have not been validated for WTI.
 * WTI settled at -37.63 on 2020-04-20, which would put a -60% "return" into estimation windows. WTI's own price series is
   therefore used only from `cfg.series_start["wti_fut"]` = 2020-06-01 (about 6 years; shorter windows are accepted down

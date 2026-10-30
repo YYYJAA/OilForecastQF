@@ -51,6 +51,10 @@ class Config:
     hmm_refit: int = 63
     hmm_window: Optional[int] = None
 
+    # the notebooks read yahoo_daily.csv only, so USD/CAD, USD/NOK and EEM (in yahoo_extra_daily.csv) were never among their
+    # predictors; set True to add them to the LASSO and XGBoost inputs
+    tab_extra_markets: bool = False
+
     # ---- regime-dependent LASSO plugin (teammate's lasson.ipynb) ----
     lr_cv_folds: int = 5                  # time-ordered cross-validation folds inside the window (gap of h days)
     lr_n_alphas: int = 30
@@ -65,7 +69,7 @@ class Config:
     # ---- XGBoost plugin (teammate's xgbn.ipynb) ----
     xgb_n_estimators: int = 500
     xgb_learning_rate: float = 0.03
-    xgb_max_depth: int = 2
+    xgb_max_depth: int = 3
     xgb_min_child_weight: float = 50
     xgb_subsample: float = 0.7
     xgb_colsample: float = 0.7
@@ -76,6 +80,11 @@ class Config:
     xgb_shrink: float = 0.5
     xgb_pca_min_eig: float = 1.0          # PCA variable selection: keep components with eigenvalue > 1 (Kaiser)
     xgb_refit_every: int = 21
+    xgb_use_regime: bool = True           # add P(turbulent) and the regime label as inputs (kept after the PCA selection)
+    xgb_min_duration: int = 65            # regimes last at least one quarter (65 trading days), in expectation and in the label
+    xgb_enter_p: float = 0.7
+    xgb_exit_p: float = 0.3
+    xgb_confirm: int = 10
 
     # ---- ARMA-GARCH plugin (teammate's gp_arma_garch.ipynb: MA(2) mean, GARCH(1,1)-t on its residuals) ----
     arma_order: tuple = (0, 2)                        # (p, q); zero-mean ARMA fitted on daily log returns
@@ -83,18 +92,13 @@ class Config:
     garch_dist: str = "t"
     arma_garch_targets: List[str] = field(default_factory=lambda: ["brent_fut", "wti_fut"])
 
-    # ---- MS-AR plugin (teammate's msar.ipynb: 2-regime Markov-switching AR on Brent returns) ----
-    # model name -> family ("baseline" = V1 MS-AR; "msarx" = V2 MS-ARX with lagged WTI/DXY/spread inputs),
-    # estimation window (returns), and the mean weight that scales the expected return (0 = no change, 1 = full).
-    # Values are the ones the notebook selected on its 2022-2023 validation sample.
-    msar_models: dict = field(default_factory=lambda: {
-        "MS-AR": {"family": "baseline", "window": 1260, "weight": 1.0},
-        "MS-ARX": {"family": "msarx", "window": 756, "weight": 0.25},
-    })
-    msar_refit_every: int = 63            # trading days between re-estimations (about a quarter)
+    # ---- MS-AR plugin (teammate's msar_common.ipynb: MS-AR and MS-ARX on a common Brent / WTI calendar) ----
+    msar_window: int = 1260               # estimation window (returns) for both models
+    msar_shrink: float = 0.5              # point forecast = 0.5 x the model's exact mean (equal-weight mix with no change)
+    msar_refit_every: int = 21            # back-fill only: re-estimate every 21 trading days, as in the notebook
     msar_seed: int = 5210
-    msar_n_sim: int = 4000                # simulated paths for the +-1 sd band
-    msar_fill_limit: int = 3              # causal forward-fill limit for WTI / DXY quotes
+    msar_n_sim: int = 2000                # simulated paths per origin for the band
+    msar_fill_limit: int = 3              # causal forward-fill limit for the dollar index
 
     # ---- frozen-model evaluation (scripts/frozen_eval.py) ----
     frozen_cutoff: str = "2024-12-31"        # models are estimated / selected on data up to and including this date

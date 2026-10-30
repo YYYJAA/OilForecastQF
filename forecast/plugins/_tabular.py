@@ -51,10 +51,13 @@ class Panel:
         return int(ok[0]) if len(ok) else len(self.X)
 
 
-def build_panel(inputs, cfg, target) -> Panel:
+def build_panel(inputs, cfg, target, common=False) -> Panel:
+    """common=True: keep only the days on which the other oil benchmark is also quoted (the XGBoost notebook's calendar)."""
     px = target_inputs(inputs, cfg, target).prices
     price = px[target].dropna()
     price = price[price > 0]
+    if common and COUNTER.get(target) in px:
+        price = price[(px[COUNTER[target]].reindex(price.index) > 0).to_numpy()]
     other = px.drop(columns=[target]).copy()
     for c in other.columns:
         if c not in FRED_COLS:
@@ -79,7 +82,8 @@ def build_panel(inputs, cfg, target) -> Panel:
     if wti is not None and {"gasoline", "heating_oil"} <= set(other.columns):
         crack = ((2 * 42 * other["gasoline"] + 42 * other["heating_oil"] - 3 * wti) / 3 / wti).where(lambda s: s.abs() < 2)
         f["crack_z"], f["crack_d20"] = zscore(crack), crack.diff(20)
-    for c in ("natgas", "xle", "sp500", "dxy", "gold", "copper", "usdcad", "usdnok", "eem"):
+    markets = ("natgas", "xle", "sp500", "dxy", "gold", "copper") + (("usdcad", "usdnok", "eem") if cfg.tab_extra_markets else ())
+    for c in markets:
         if c in other and other[c].notna().sum() > 500:
             f[f"{c}_ret20"] = np.log(other[c]).diff(20)
     if "t10y3m" in other:
@@ -221,14 +225,22 @@ class RegimeLabel:
         return {"state": self.state, "run": self.run, "since": self.since}
 
 
-def regime_path(y_new, regime, prior, label_state, cfg):
+def lr_params(cfg):
+    return (cfg.lr_min_duration, cfg.lr_enter_p, cfg.lr_exit_p, cfg.lr_confirm)
+
+
+def xgb_params(cfg):
+    return (cfg.xgb_min_duration, cfg.xgb_enter_p, cfg.xgb_exit_p, cfg.xgb_confirm)
+
+
+def regime_path(y_new, regime, prior, label_state, rp):
     """Continue the regime filter and label with FIXED parameters through the returns y_new (days after the training end).
-    Returns (P(turbulent) per day, label per day, state after the last day)."""
+    rp = (min_duration, enter_p, exit_p, confirm). Returns (P(turbulent) per day, label per day, state after the last day)."""
     if len(y_new) == 0:
         return np.array([]), np.array([]), None
     mu, sig, P = (np.asarray(regime[k], float) for k in ("mu", "sig", "P"))
     filt, _, _ = _ms_filter(np.nan_to_num(np.asarray(y_new, float)), mu, sig, P, np.asarray(prior, float))
     p = filt[:, 1]
-    machine = RegimeLabel(cfg.lr_min_duration, cfg.lr_enter_p, cfg.lr_exit_p, cfg.lr_confirm, **label_state)
+    machine = RegimeLabel(*rp, **label_state)
     lab = np.array([machine.step(v) for v in p], float)
     return p, lab, machine.snapshot()

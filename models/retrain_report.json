@@ -1,34 +1,266 @@
 {
-  "generated_at_utc": "2026-10-19T14:08:57+00:00",
+  "generated_at_utc": "2026-10-30T15:25:16+00:00",
   "reports": [
     {
       "plugin": "lasso_regime",
-      "trained_at": "2026-10-19T14:08:56+00:00",
-      "train_end": "2026-10-18",
-      "previous_train_end": null,
-      "previous_trained_at": null,
-      "seconds": 1.4,
+      "trained_at": "2026-10-30T15:25:13+00:00",
+      "train_end": "2026-10-29",
+      "previous_train_end": "2026-10-18",
+      "previous_trained_at": "2026-10-19T14:08:56+00:00",
+      "seconds": 1.3,
       "headline": [
-        "[Brent] New training data run through 2026-10-18 (first training).",
-        "[Brent] Estimation window: 2021-10-14 to 2026-10-18 (1260 trading days). Regimes: calm volatility 29% a year, turbulent 67%; the market is currently calm.",
-        "[Brent] Terms the LASSO keeps (of 49) by horizon: 1d: 1, 5d: 1, 10d: 1, 20d: 1, 40d: 1, 60d: 0.",
-        "[WTI] New training data run through 2026-10-18 (first training).",
-        "[WTI] Estimation window: 2021-10-13 to 2026-10-18 (1260 trading days). Regimes: calm volatility 32% a year, turbulent 70%; the market is currently calm.",
-        "[WTI] Terms the LASSO keeps (of 49) by horizon: 1d: 1, 5d: 1, 10d: 1, 20d: 0, 40d: 0, 60d: 1."
+        "[Brent] New training data run through 2026-10-29 (previous model: 2026-10-18).",
+        "[Brent] Estimation window: 2021-10-28 to 2026-10-29 (1260 trading days). Regimes: calm volatility 29% a year, turbulent 67%; the market is currently calm.",
+        "[Brent] Terms the LASSO keeps (of 43) by horizon: 1d: 0, 5d: 1, 10d: 0, 20d: 0, 40d: 1, 60d: 0.",
+        "[WTI] New training data run through 2026-10-29 (previous model: 2026-10-18).",
+        "[WTI] Estimation window: 2021-10-27 to 2026-10-29 (1260 trading days). Regimes: calm volatility 32% a year, turbulent 70%; the market is currently calm.",
+        "[WTI] Terms the LASSO keeps (of 43) by horizon: 1d: 1, 5d: 1, 10d: 1, 20d: 0, 40d: 0, 60d: 1."
+      ],
+      "tables": []
+    },
+    {
+      "plugin": "arma_garch",
+      "trained_at": "2026-10-30T15:25:13+00:00",
+      "train_end": "2026-10-29",
+      "previous_train_end": "2026-10-16",
+      "previous_trained_at": "2026-10-18T08:34:48+00:00",
+      "seconds": 0.5,
+      "headline": [
+        "Estimated on all data through 2026-10-29 (previous: 2026-10-16)."
       ],
       "tables": [
         {
-          "title": "[Brent] Largest terms in the 20-day LASSO (standardised effect)",
+          "title": "ARMA-GARCH parameters",
           "header": [
-            "Predictor",
-            "Calm market",
-            "Turbulent market"
+            "Series",
+            "Observations",
+            "Sample",
+            "ARMA coefficients",
+            "GARCH",
+            "alpha+beta (old -> new)",
+            "Long-run vol (ann.)",
+            "Converged"
           ],
           "rows": [
             [
-              "brent_ret60",
-              "-0.000",
-              "-0.000"
+              "brent_fut",
+              "4,794",
+              "2007-07-31 -> 2026-10-29",
+              "ma.L1 -0.020 | ma.L2 0.000",
+              "alpha 0.082, beta 0.913, nu 5.6",
+              "0.995 -> 0.996",
+              "52%",
+              "yes"
+            ],
+            [
+              "wti_fut",
+              "6,574",
+              "2000-08-24 -> 2026-10-29",
+              "ma.L1 -0.017 | ma.L2 -0.028",
+              "alpha 0.079, beta 0.908, nu 7.7",
+              "0.987 -> 0.987",
+              "40%",
+              "yes"
+            ]
+          ]
+        },
+        {
+          "title": "Volatility forecast impact (1-sd of the h-day return, same data)",
+          "header": [
+            "Series",
+            "Horizon",
+            "Old model",
+            "New model",
+            "Change"
+          ],
+          "rows": [
+            [
+              "brent_fut",
+              "+1d",
+              "2.69%",
+              "2.69%",
+              "-0.0%"
+            ],
+            [
+              "brent_fut",
+              "+20d",
+              "11.91%",
+              "11.90%",
+              "-0.0%"
+            ],
+            [
+              "brent_fut",
+              "+60d",
+              "20.97%",
+              "20.99%",
+              "+0.1%"
+            ],
+            [
+              "wti_fut",
+              "+1d",
+              "2.68%",
+              "2.68%",
+              "+0.0%"
+            ],
+            [
+              "wti_fut",
+              "+20d",
+              "11.45%",
+              "11.44%",
+              "-0.1%"
+            ],
+            [
+              "wti_fut",
+              "+60d",
+              "19.59%",
+              "19.58%",
+              "-0.0%"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "plugin": "msar",
+      "trained_at": "2026-10-30T15:25:15+00:00",
+      "train_end": "2026-10-29",
+      "previous_train_end": "2026-10-16",
+      "previous_trained_at": "2026-10-18T08:34:49+00:00",
+      "seconds": 1.9,
+      "headline": [
+        "[Brent] MS-AR: trained through 2026-10-29 (first training with this specification); window 2021-10-28 to 2026-10-29 (1260 returns). Volatility: calm 28% a year, turbulent 67%; the chance of staying in each regime a day is 97.8% / 92.4%.",
+        "[Brent] MS-ARX: trained through 2026-10-29 (first training with this specification); window 2021-10-28 to 2026-10-29 (1260 returns). Volatility: calm 28% a year, turbulent 66%; the chance of staying in each regime a day is 98.0% / 92.9%.",
+        "[WTI] MS-AR: trained through 2026-10-29 (first training with this specification); window 2021-10-28 to 2026-10-29 (1260 returns). Volatility: calm 32% a year, turbulent 70%; the chance of staying in each regime a day is 99.0% / 95.6%.",
+        "[WTI] MS-ARX: trained through 2026-10-29 (first training with this specification); window 2021-10-28 to 2026-10-29 (1260 returns). Volatility: calm 32% a year, turbulent 70%; the chance of staying in each regime a day is 99.0% / 95.6%."
+      ],
+      "tables": [
+        {
+          "title": "[Brent] MS-AR parameters",
+          "header": [
+            "Model",
+            "Parameter",
+            "Previous",
+            "New"
+          ],
+          "rows": [
+            [
+              "MS-AR",
+              "Calm volatility (% a year)",
+              "n/a",
+              "27.9"
+            ],
+            [
+              "MS-AR",
+              "Turbulent volatility (% a year)",
+              "n/a",
+              "67.1"
+            ],
+            [
+              "MS-AR",
+              "AR coefficient",
+              "n/a",
+              "0.0102"
+            ],
+            [
+              "MS-ARX",
+              "Calm volatility (% a year)",
+              "n/a",
+              "28"
+            ],
+            [
+              "MS-ARX",
+              "Turbulent volatility (% a year)",
+              "n/a",
+              "66.5"
+            ],
+            [
+              "MS-ARX",
+              "AR coefficient",
+              "n/a",
+              "-0.0904"
+            ],
+            [
+              "MS-ARX",
+              "Input effect: other_oil_return_pct",
+              "n/a",
+              "0.2761"
+            ],
+            [
+              "MS-ARX",
+              "Input effect: dxy_return_pct",
+              "n/a",
+              "0.0497"
+            ],
+            [
+              "MS-ARX",
+              "Input effect: spread_usd",
+              "n/a",
+              "-0.035"
+            ]
+          ]
+        },
+        {
+          "title": "[WTI] MS-AR parameters",
+          "header": [
+            "Model",
+            "Parameter",
+            "Previous",
+            "New"
+          ],
+          "rows": [
+            [
+              "MS-AR",
+              "Calm volatility (% a year)",
+              "n/a",
+              "31.6"
+            ],
+            [
+              "MS-AR",
+              "Turbulent volatility (% a year)",
+              "n/a",
+              "70.4"
+            ],
+            [
+              "MS-AR",
+              "AR coefficient",
+              "n/a",
+              "0.017"
+            ],
+            [
+              "MS-ARX",
+              "Calm volatility (% a year)",
+              "n/a",
+              "31.5"
+            ],
+            [
+              "MS-ARX",
+              "Turbulent volatility (% a year)",
+              "n/a",
+              "69.8"
+            ],
+            [
+              "MS-ARX",
+              "AR coefficient",
+              "n/a",
+              "0.0429"
+            ],
+            [
+              "MS-ARX",
+              "Input effect: other_oil_return_pct",
+              "n/a",
+              "-0.076"
+            ],
+            [
+              "MS-ARX",
+              "Input effect: dxy_return_pct",
+              "n/a",
+              "0.0458"
+            ],
+            [
+              "MS-ARX",
+              "Input effect: spread_usd",
+              "n/a",
+              "0.0845"
             ]
           ]
         }
@@ -36,18 +268,20 @@
     },
     {
       "plugin": "xgboost",
-      "trained_at": "2026-10-19T14:08:57+00:00",
-      "train_end": "2026-10-18",
-      "previous_train_end": null,
-      "previous_trained_at": null,
-      "seconds": 0.5,
+      "trained_at": "2026-10-30T15:25:16+00:00",
+      "train_end": "2026-10-29",
+      "previous_train_end": "2026-10-18",
+      "previous_trained_at": "2026-10-19T14:08:57+00:00",
+      "seconds": 1.0,
       "headline": [
-        "[Brent] New training data run through 2026-10-18 (first training).",
-        "[Brent] Estimation window: 2021-10-14 to 2026-10-18 (1260 trading days). PCA keeps 8 of 24 variables.",
-        "[Brent] Trees kept by early stopping: 1d: 123, 5d: 1, 10d: 1, 20d: 1, 40d: 1, 60d: 1.",
-        "[WTI] New training data run through 2026-10-18 (first training).",
-        "[WTI] Estimation window: 2021-10-13 to 2026-10-18 (1260 trading days). PCA keeps 8 of 24 variables.",
-        "[WTI] Trees kept by early stopping: 1d: 4, 5d: 1, 10d: 5, 20d: 1, 40d: 1, 60d: 1."
+        "[Brent] New training data run through 2026-10-29 (previous model: 2026-10-18).",
+        "[Brent] Estimation window: 2021-10-27 to 2026-10-29 (1260 trading days). PCA keeps 7 of 21 variables, plus the regime probability and label.",
+        "[Brent] Variable set changed: added ['copper_ret20', 'sp500_ret20']; dropped ['usdnok_ret20', 'crack_d20', 'ovx_z'].",
+        "[Brent] Trees kept by early stopping: 1d: 3, 5d: 2, 10d: 1, 20d: 3, 40d: 1, 60d: 1.",
+        "[WTI] New training data run through 2026-10-29 (previous model: 2026-10-18).",
+        "[WTI] Estimation window: 2021-10-27 to 2026-10-29 (1260 trading days). PCA keeps 7 of 21 variables, plus the regime probability and label.",
+        "[WTI] Variable set changed: added ['vix_z', 'crack_z', 'natgas_ret20', 'sp500_ret20']; dropped ['t10y3m_d60', 'breakeven_d20', 'rv_ratio', 'usdnok_ret20', 'ovx_z'].",
+        "[WTI] Trees kept by early stopping: 1d: 1, 5d: 1, 10d: 2, 20d: 1, 40d: 1, 60d: 1."
       ],
       "tables": [
         {
@@ -62,11 +296,11 @@
               "yes"
             ],
             [
-              "usdnok_ret20",
-              ""
+              "copper_ret20",
+              "yes"
             ],
             [
-              "ovx_z",
+              "rv_ratio",
               "yes"
             ],
             [
@@ -74,20 +308,16 @@
               "yes"
             ],
             [
+              "sp500_ret20",
+              "yes"
+            ],
+            [
               "natgas_ret20",
               ""
             ],
             [
-              "crack_d20",
-              "yes"
-            ],
-            [
               "brent_ret1",
               ""
-            ],
-            [
-              "rv_ratio",
-              "yes"
             ]
           ]
         },
@@ -103,23 +333,15 @@
               "yes"
             ],
             [
-              "usdnok_ret20",
-              "yes"
-            ],
-            [
-              "ovx_z",
+              "vix_z",
               "yes"
             ],
             [
               "gold_ret20",
-              ""
-            ],
-            [
-              "t10y3m_d60",
               "yes"
             ],
             [
-              "breakeven_d20",
+              "crack_z",
               ""
             ],
             [
@@ -127,8 +349,12 @@
               ""
             ],
             [
-              "rv_ratio",
-              "yes"
+              "natgas_ret20",
+              ""
+            ],
+            [
+              "sp500_ret20",
+              ""
             ]
           ]
         }

@@ -24,13 +24,15 @@ CARDS = {
                      "Markov-switching model labels each day calm or turbulent. The penalty shrinks useless terms to zero, and the final "
                      "forecast is halved (an equal-weight mix with 'no change'). Often it keeps almost nothing, which means 'no change'."),
     "xgboost": ("XGBoost",
-                "Shallow gradient-boosted trees on the same predictors, cut down by PCA to one representative variable per independent "
-                "direction. Slow learning and strong penalties keep it from overfitting, and the forecast is halved like the LASSO. "
-                "Both models are retrained quarterly and give an interval from their own past errors."),
+                "Shallow gradient-boosted trees (depth 3) on the same predictors, cut down by PCA to one representative variable per "
+                "independent direction, plus two regime inputs: the chance the market is turbulent and a calm / turbulent label (regimes "
+                "last at least a quarter). Slow learning and strong penalties keep it from overfitting, and the forecast is halved like the "
+                "LASSO. It gives an interval from its own past errors."),
     "arma_garch": ("ARMA-GARCH", "A small ARMA for the mean and a GARCH(1,1) with fat tails for the changing volatility. Its value is the "
                                  "uncertainty band: the mean is close to zero."),
     "msar": ("MS-AR / MS-ARX", "Markov-switching autoregression: returns follow a calm or a turbulent regime, with probabilities updated daily. "
-                               "MS-ARX adds external predictors and shrinks the forecast towards zero."),
+                               "MS-ARX adds the other oil benchmark's return, the dollar index and the Brent-WTI spread. Both forecasts are halved "
+                               "(an equal-weight mix with 'no change'), and the interval comes from simulating the regime path."),
 }
 for key, (title, text) in CARDS.items():
     with st.expander(title):

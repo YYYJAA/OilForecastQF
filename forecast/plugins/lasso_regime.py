@@ -93,7 +93,7 @@ def _apply(fit, P, positions, cfg):
     pos = np.asarray(sorted(int(p) for p in positions if p >= i0))
     if len(pos) == 0:
         return pd.DataFrame()
-    p_new, lab_new, _ = T.regime_path(P.rr[i0 + 1:pos.max() + 1], fit["regime"], fit["prior"], fit["label_state"], cfg)
+    p_new, lab_new, _ = T.regime_path(P.rr[i0 + 1:pos.max() + 1], fit["regime"], fit["prior"], fit["label_state"], T.lr_params(cfg))
     p_all = np.r_[fit["p_last"], p_new]
     lab_all = np.r_[fit["lab_last"], lab_new]
     off = pos - i0

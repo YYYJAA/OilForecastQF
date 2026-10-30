@@ -1,9 +1,9 @@
 {
-  "generated_at_utc": "2026-10-19T14:10:50+00:00",
+  "generated_at_utc": "2026-10-30T15:27:25+00:00",
   "cutoff": "2024-12-31",
   "first_origin": "2025-01-02",
-  "last_origin": "2026-10-18",
-  "n_origins": 452,
+  "last_origin": "2026-10-29",
+  "n_origins": 462,
   "fan_origin": "2026-07-01",
   "cost_bps": 5.0,
   "trade_band": 0.1,
@@ -38,5 +38,5 @@
     "xgboost": "2024-12-31"
   },
   "failed": [],
-  "seconds": 74.3
+  "seconds": 62.0
 }
